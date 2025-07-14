@@ -1,4 +1,3 @@
-
 const express = require("express");
 const pool = require("./db");
 require("dotenv").config();
@@ -9,6 +8,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+// Listar tarefas do dia
 app.get("/api/tarefas", async (req, res) => {
   const dia = new Date().getDate();
   const { rows } = await pool.query(
@@ -18,6 +18,7 @@ app.get("/api/tarefas", async (req, res) => {
   res.json(rows);
 });
 
+// Status do usuário
 app.get("/api/status/:telegram_id", async (req, res) => {
   const { telegram_id } = req.params;
   const { rows } = await pool.query(
@@ -32,6 +33,7 @@ app.get("/api/status/:telegram_id", async (req, res) => {
   });
 });
 
+// Marcar tarefa concluída
 app.post("/api/concluir", async (req, res) => {
   const { telegram_id, tarefa_id } = req.body;
   const hoje = new Date().toISOString().split("T")[0];
@@ -63,6 +65,7 @@ app.post("/api/concluir", async (req, res) => {
   res.json({ mensagem: "Tarefa registrada com sucesso!" });
 });
 
+// Registrar indicação
 app.post("/api/indicar", async (req, res) => {
   const { userid, referrer } = req.body;
   const hoje = new Date().toISOString().split("T")[0];
