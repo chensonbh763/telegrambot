@@ -8,14 +8,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// Listar tarefas do dia
+// Listar todas as tarefas ativas (sem filtro por dia)
 app.get("/api/tarefas", async (req, res) => {
-  const dia = new Date().getDate();
-  const { rows } = await pool.query(
-    "SELECT * FROM tarefas WHERE ativa = true AND dia = $1",
-    [dia]
-  );
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(
+      "SELECT * FROM tarefas WHERE ativa = true"
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error("Erro ao buscar tarefas:", error);
+    res.status(500).json({ erro: "Falha ao listar tarefas" });
+  }
 });
 
 // Status do usuário
@@ -93,5 +96,5 @@ app.post("/api/indicar", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`✅ Servidor rodando na porta ${PORT}`);
 });
