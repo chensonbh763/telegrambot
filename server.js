@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static("public")); // Serve index.html no caminho /
 
 // 🔹 Rota inicial
 app.get("/", (req, res) => {
@@ -96,12 +96,16 @@ const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
+
   bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMais! Acesse seu painel abaixo:", {
     reply_markup: {
       inline_keyboard: [[
         {
           text: "📲 Abrir Mini App",
-          web_app: { url: "https://SEU_DOMINIO.com/index.html" }
+          web_app: {
+            // ✅ Substitua pela URL final do Railway após o deploy
+            url: "https://lucremaistask.up.railway.app/"
+          }
         }
       ]]
     }
