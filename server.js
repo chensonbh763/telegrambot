@@ -98,3 +98,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Servidor rodando na porta ${PORT}`);
 });
+// Visualizar dados da conexão (para debug)
+app.get("/api/conexao", (req, res) => {
+  const { host, port, database, user } = pool.options;
+  res.json({ host, port, database, user });
+});
