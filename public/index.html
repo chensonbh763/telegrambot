@@ -3,17 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <title>LucreMais - Mini App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>body{font-family:sans-serif;padding:1em}</style>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1em;
+      background: #f9f9f9;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    .tarefa {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 8px 12px;
+      background: #0088cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #link {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+  </style>
 </head>
 <body>
   <h2>Bem-vindo ao LucreMais 💸</h2>
-  <div id="status">Carregando dados...</div>
-  <ul id="tarefas"></ul>
+
+  <div id="tarefas">Carregando tarefas...</div>
 
   <div style="margin-top: 20px;">
     <p>📣 Convide amigos e ganhe pontos:</p>
-    <input type="text" id="link" style="width: 100%;" readonly />
+    <input type="text" id="link" readonly />
+    <button onclick="compartilharLink()" style="margin-top: 10px;">
+      📤 Compartilhar com amigos
+    </button>
   </div>
 
   <script>
@@ -21,27 +56,21 @@
     const userId = tg.initDataUnsafe?.user?.id || 0;
     const api = "/api";
 
-    async function carregarStatus() {
-      const r = await fetch(`${api}/status/${userId}`);
-      const data = await r.json();
-      document.getElementById("status").innerHTML =
-        `👤 ${data.nome} | ⭐ VIP: ${data.vip ? 'SIM' : 'NÃO'} | 💰 Pontos: ${data.pontos}`;
-
-      document.getElementById("link").value =
-        `https://t.me/LucreMaisTask_bot?start=${userId}`;
-    }
-
     async function carregarTarefas() {
       const r = await fetch(`${api}/tarefas`);
       const tarefas = await r.json();
-      const lista = document.getElementById("tarefas");
+      const container = document.getElementById("tarefas");
+      container.innerHTML = "";
+
       tarefas.forEach(t => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          ✅ ${t.titulo} 
+        const div = document.createElement("div");
+        div.className = "tarefa";
+        div.innerHTML = `
+          <h3>${t.titulo}</h3>
+          <p><strong>Pontos:</strong> ${t.pontos}</p>
           <button onclick="concluir(${t.id}, '${t.link}')">Fazer</button>
         `;
-        lista.appendChild(li);
+        container.appendChild(div);
       });
     }
 
@@ -55,23 +84,27 @@
       alert("Tarefa registrada! ✅");
     }
 
-    carregarStatus();
+    function compartilharLink() {
+      const linkConvite = document.getElementById("link").value;
+
+      navigator.clipboard.writeText(linkConvite).then(() => {
+        if (navigator.share) {
+          navigator.share({
+            title: "LucreMais - Ganhe pontos!",
+            text: "Entre no grupo VIP e comece a lucrar:",
+            url: linkConvite
+          }).catch(() => alert("Link copiado! ✅"));
+        } else {
+          alert("Link copiado para área de transferência ✅");
+        }
+      });
+    }
+
+    // Preenche link personalizado de convite
+    document.getElementById("link").value =
+      `https://t.me/LucreMaisTask_bot?start=${userId}`;
+
     carregarTarefas();
-
-    async function carregarConexao() {
-  const res = await fetch("/api/conexao");
-  const db = await res.json();
-  const info = `
-    🧠 Banco: ${db.database}  
-    🔗 Host: ${db.host}  
-    👤 Usuário: ${db.user}  
-    🌐 Porta: ${db.port}
-  `;
-  const status = document.getElementById("status");
-  status.innerHTML += `<br/><br/><strong>🔍 Conexão:</strong><br/>${info}`;
-}
-
-carregarConexao();
   </script>
 </body>
 </html>
