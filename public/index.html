@@ -57,6 +57,21 @@
 
     carregarStatus();
     carregarTarefas();
+
+    async function carregarConexao() {
+  const res = await fetch("/api/conexao");
+  const db = await res.json();
+  const info = `
+    🧠 Banco: ${db.database}  
+    🔗 Host: ${db.host}  
+    👤 Usuário: ${db.user}  
+    🌐 Porta: ${db.port}
+  `;
+  const status = document.getElementById("status");
+  status.innerHTML += `<br/><br/><strong>🔍 Conexão:</strong><br/>${info}`;
+}
+
+carregarConexao();
   </script>
 </body>
 </html>
