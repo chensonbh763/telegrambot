@@ -1,18 +1,37 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Painel Admin - LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 20px; }
-    h2 { color: #2a8f43; }
-    input, textarea, button {
-      width: 100%; padding: 10px; margin: 10px 0; font-size: 1rem;
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
     }
-    section { border: 1px solid #ccc; padding: 20px; margin-top: 20px; border-radius: 8px; background: #f9f9f9; }
-    pre { background: #eee; padding: 10px; white-space: pre-wrap; }
+    h2 {
+      color: #2a8f43;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 1rem;
+    }
+    section {
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    pre {
+      background: #eee;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -22,24 +41,24 @@
   <section>
     <h3>✅ Verificar conexão com o banco</h3>
     <button onclick="testarConexao()">Testar Conexão</button>
-    <pre id="resultadoConexao"></pre>
+    <pre id="resultadoConexao">Aguardando teste...</pre>
   </section>
 
   <section>
     <h3>➕ Criar Nova Tarefa</h3>
-    <input type="text" id="titulo" placeholder="Título da tarefa">
-    <input type="text" id="link" placeholder="Link da tarefa">
-    <input type="number" id="dia" placeholder="Dia (ex: 16)">
-    <input type="number" id="pontos" placeholder="Pontos da tarefa">
+    <input type="text" id="titulo" placeholder="Título da tarefa" required />
+    <input type="text" id="link" placeholder="Link da tarefa (https://...)" required />
+    <input type="number" id="dia" placeholder="Dia (ex: 16)" required />
+    <input type="number" id="pontos" placeholder="Pontos da tarefa" value="1" required />
     <button onclick="criarTarefa()">Criar Tarefa</button>
-    <pre id="respostaCriar"></pre>
+    <pre id="respostaCriar">Aguardando envio...</pre>
   </section>
 
   <section>
-    <h3>📄 Executar SQL Manual</h3>
+    <h3>📄 Executar Comando SQL</h3>
     <textarea id="sql" rows="4" placeholder="Digite aqui seu comando SQL..."></textarea>
     <button onclick="executarSQL()">Executar</button>
-    <pre id="respostaSQL"></pre>
+    <pre id="respostaSQL">Nenhum resultado ainda.</pre>
   </section>
 
 <script>
@@ -47,10 +66,11 @@
     try {
       const res = await fetch("/api/tarefas");
       const data = await res.json();
-      document.getElementById("resultadoConexao").textContent = "✅ Conectado com sucesso!
-Tarefas carregadas: " + data.length;
+      document.getElementById("resultadoConexao").textContent =
+        "✅ Conectado com sucesso!\nTarefas carregadas: " + data.length;
     } catch (err) {
-      document.getElementById("resultadoConexao").textContent = "❌ Erro ao conectar: " + err;
+      document.getElementById("resultadoConexao").textContent =
+        "❌ Erro ao conectar com o banco.\n" + err;
     }
   }
 
@@ -71,7 +91,8 @@ Tarefas carregadas: " + data.length;
       const text = await res.text();
       document.getElementById("respostaCriar").textContent = text;
     } catch (err) {
-      document.getElementById("respostaCriar").textContent = "Erro ao criar tarefa: " + err;
+      document.getElementById("respostaCriar").textContent =
+        "❌ Erro ao criar tarefa: " + err;
     }
   }
 
@@ -86,7 +107,8 @@ Tarefas carregadas: " + data.length;
       const text = await res.text();
       document.getElementById("respostaSQL").textContent = text;
     } catch (err) {
-      document.getElementById("respostaSQL").textContent = "Erro ao executar SQL: " + err;
+      document.getElementById("respostaSQL").textContent =
+        "❌ Erro ao executar SQL: " + err;
     }
   }
 </script>
