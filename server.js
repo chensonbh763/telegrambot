@@ -11,25 +11,127 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// ✅ Rota principal para checagem
+// ✅ Rota principal
 app.get("/", (req, res) => {
   res.send("🚀 API LucreMaisTask está no ar!");
 });
 
-// 🔹 Listar tarefas ativas
-app.get("/api/tarefas", async (req, res) => {
+// 🔹 Listar tarefas personalizadas do usuário
+app.get("/api/tarefas/:telegram_id", async (req, res) => {
+  const { telegram_id } = req.params;
   try {
     const { rows } = await pool.query(
-      "SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC"
+      "SELECT * FROM tarefas_usuario WHERE telegram_id = $1 AND status = 'pendente' ORDER BY tarefa_id DESC",
+      [telegram_id]
     );
     res.json(rows);
-  } catch (error) {
-    console.error("Erro ao buscar tarefas:", error);
-    res.status(500).json({ erro: "Erro ao listar tarefas" });
+  } catch (err) {
+    console.error("Erro ao listar tarefas do usuário:", err);
+    res.status(500).json({ erro: "Erro interno" });
   }
 });
 
-// 🔹 Criar nova tarefa (via painel admin)
+// 🔹 Obter status do usuário
+app.get("/api/status/:telegram_id", async (req, res) => {
+  const { telegram_id } = req.params;
+  try {
+    const { rows } = await pool.query(
+      "SELECT nome, vip, pontos, indicacoes FROM usuarios WHERE telegram_id = $1",
+      [telegram_id]
+    );
+    if (rows.length === 0) {
+      await pool.query("INSERT INTO usuarios (telegram_id, nome) VALUES ($1, $2)", [telegram_id, "Usuário"]);
+      return res.json({ nome: "Usuário", vip: false, pontos: 0, indicacoes: 0 });
+    }
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("Erro ao buscar status:", err);
+    res.status(500).json({ erro: "Erro interno" });
+  }
+});
+
+// 🔹 Marcar tarefa como concluída
+app.post("/api/concluir", async (req, res) => {
+  const { telegram_id, tarefa_id } = req.body;
+  const hoje = new Date().toISOString().split("T")[0];
+
+  try {
+    await pool.query(
+      "UPDATE tarefas_usuario SET status = 'concluida', data_conclusao = $1 WHERE telegram_id = $2 AND tarefa_id = $3",
+      [hoje, telegram_id, tarefa_id]
+    );
+
+    await pool.query(
+      `UPDATE usuarios
+       SET pontos = pontos + (
+         SELECT pontos FROM tarefas_usuario WHERE telegram_id = $1 AND tarefa_id = $2
+       ),
+       tarefas_feitas = tarefas_feitas + 1
+       WHERE telegram_id = $1`,
+      [telegram_id, tarefa_id]
+    );
+
+    res.json({ mensagem: "Tarefa concluída com sucesso!" });
+  } catch (err) {
+    console.error("Erro ao concluir tarefa:", err);
+    res.status(500).json({ erro: "Erro ao concluir tarefa" });
+  }
+});
+
+// 🔹 Registrar novo usuário e registrar indicação
+app.post("/api/registrar", async (req, res) => {
+  const { telegram_id, nome, referrer } = req.body;
+
+  try {
+    const existente = await pool.query("SELECT 1 FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+    if (existente.rowCount === 0) {
+      await pool.query("INSERT INTO usuarios (telegram_id, nome) VALUES ($1, $2)", [telegram_id, nome || "Usuário"]);
+    }
+
+    if (referrer) {
+      const jaIndicado = await pool.query("SELECT 1 FROM indicacoes WHERE indicado = $1", [telegram_id]);
+      if (jaIndicado.rowCount === 0) {
+        const hoje = new Date().toISOString().split("T")[0];
+        await pool.query("INSERT INTO indicacoes (indicado, referrer, data) VALUES ($1, $2, $3)", [telegram_id, referrer, hoje]);
+        await pool.query("UPDATE usuarios SET pontos = pontos + 3, indicacoes = indicacoes + 1 WHERE telegram_id = $1", [referrer]);
+      }
+    }
+
+    res.send("Usuário registrado com sucesso.");
+  } catch (err) {
+    console.error("Erro ao registrar usuário:", err);
+    res.status(500).send("Erro ao registrar.");
+  }
+});
+
+// 🔹 Atribuir tarefas padrão a um novo usuário
+app.post("/api/atribuir_tarefas", async (req, res) => {
+  const { telegram_id } = req.body;
+  try {
+    const tarefas = await pool.query("SELECT * FROM tarefas WHERE ativa = true");
+
+    for (let t of tarefas.rows) {
+      await pool.query(`
+        INSERT INTO tarefas_usuario 
+        (telegram_id, tarefa_id, titulo, link, pontos, status, data_criada, vip, visibilidade, tipo, validade, expirada)
+        VALUES ($1, $2, $3, $4, $5, 'pendente', CURRENT_DATE, false, 'todos', 'diaria', NULL, false)
+      `, [
+        telegram_id,
+        t.id,
+        t.titulo,
+        t.link,
+        t.pontos
+      ]);
+    }
+
+    res.send("Tarefas atribuídas com sucesso.");
+  } catch (err) {
+    console.error("Erro ao atribuir tarefas:", err);
+    res.status(500).send("Erro ao atribuir tarefas.");
+  }
+});
+
+// 🔹 Painel admin: criar nova tarefa base
 app.post("/admin/tarefa", async (req, res) => {
   const { titulo, link, dia, pontos } = req.body;
   try {
@@ -44,7 +146,7 @@ app.post("/admin/tarefa", async (req, res) => {
   }
 });
 
-// 🔹 Executar comandos SQL manuais (via painel admin)
+// 🔹 Painel admin: executar comandos SQL
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
@@ -56,13 +158,26 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-// 🔹 Telegram Bot
+// 🔹 Telegram Bot com sistema de indicação
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
+  const referrer = match[1];
 
-  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia e começar a lucrar. 💸", {
+  await fetch("https://web-production-10f9d.up.railway.app/api/registrar", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegram_id: chatId, nome: msg.from.first_name, referrer })
+  });
+
+  await fetch("https://web-production-10f9d.up.railway.app/api/atribuir_tarefas", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegram_id: chatId })
+  });
+
+  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse seu painel abaixo:", {
     reply_markup: {
       inline_keyboard: [[
         {
@@ -74,6 +189,7 @@ bot.onText(/\/start/, (msg) => {
   });
 });
 
+// Inicia o servidor
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
