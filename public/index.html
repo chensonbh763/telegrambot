@@ -32,29 +32,15 @@
 <body>
 
   <h2>✅ Minhas Tarefas</h2>
-  <div id="status" class="box">Carregando informações...</div>
   <div id="tarefas">Carregando tarefas...</div>
+
+  <button onclick="carregarStatus()">📊 Ver status do usuário</button>
+  <div id="status" class="box" style="display:none;"></div>
 
 <script>
   const telegram = window.Telegram.WebApp;
   telegram.expand();
-  const userId = telegram.initDataUnsafe.user?.id || "desconhecido";
-
-  async function carregarStatus() {
-    const res = await fetch("/api/status/" + userId);
-    const dados = await res.json();
-
-    const refLink = "https://t.me/LucreMaisTask_bot?start=" + userId;
-    const div = document.getElementById("status");
-    div.innerHTML = `
-      <strong>👤 Nome:</strong> ${dados.nome || "Visitante"}<br>
-      <strong>💰 Pontos:</strong> ${dados.pontos}<br>
-      <strong>👥 Indicações:</strong> ${dados.indicacoes}<br>
-      <strong>💎 VIP:</strong> ${dados.vip ? "Sim" : "Não"}<br><br>
-      <button onclick="window.open('${refLink}', '_blank')">📤 Compartilhar link</button>
-      ${!dados.vip ? '<button onclick="window.open('https://mfuture.com.br/lucremais/vip', '_blank')">💎 Tornar-se VIP</button>' : ''}
-    `;
-  }
+  const userId = telegram.initDataUnsafe.user?.id || "123456789"; // ID fixo para teste local
 
   async function carregarTarefas() {
     const res = await fetch("/api/tarefas");
@@ -79,6 +65,23 @@
     });
   }
 
+  async function carregarStatus() {
+    const res = await fetch("/api/status/" + userId);
+    const dados = await res.json();
+
+    const refLink = "https://t.me/LucreMaisTask_bot?start=" + userId;
+    const div = document.getElementById("status");
+    div.style.display = "block";
+    div.innerHTML = `
+      <strong>👤 Nome:</strong> ${dados.nome || "Visitante"}<br>
+      <strong>💰 Pontos:</strong> ${dados.pontos}<br>
+      <strong>👥 Indicações:</strong> ${dados.indicacoes}<br>
+      <strong>💎 VIP:</strong> ${dados.vip ? "Sim" : "Não"}<br><br>
+      <button onclick="window.open('${refLink}', '_blank')">📤 Compartilhar link</button>
+      ${!dados.vip ? '<button onclick="window.open('https://mfuture.com.br/lucremais/vip', '_blank')">💎 Tornar-se VIP</button>' : ''}
+    `;
+  }
+
   function verAnuncio(link, tarefaId) {
     show_9579151().then(() => {
       fetch("/api/concluir", {
@@ -92,7 +95,6 @@
     });
   }
 
-  carregarStatus();
   carregarTarefas();
 </script>
 
