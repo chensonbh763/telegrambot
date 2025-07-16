@@ -9,9 +9,14 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // Serve o index.html
+app.use(express.static("public"));
 
-// 🔹 Endpoint para listar tarefas ativas
+// ✅ Rota principal para checagem
+app.get("/", (req, res) => {
+  res.send("🚀 API LucreMaisTask está no ar!");
+});
+
+// 🔹 Listar tarefas ativas
 app.get("/api/tarefas", async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -20,7 +25,34 @@ app.get("/api/tarefas", async (req, res) => {
     res.json(rows);
   } catch (error) {
     console.error("Erro ao buscar tarefas:", error);
-    res.status(500).json({ erro: "Erro interno ao listar tarefas" });
+    res.status(500).json({ erro: "Erro ao listar tarefas" });
+  }
+});
+
+// 🔹 Criar nova tarefa (via painel admin)
+app.post("/admin/tarefa", async (req, res) => {
+  const { titulo, link, dia, pontos } = req.body;
+  try {
+    await pool.query(
+      "INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ($1, $2, $3, $4, true)",
+      [titulo, link, dia, pontos]
+    );
+    res.send("✅ Tarefa criada com sucesso!");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Erro ao criar tarefa.");
+  }
+});
+
+// 🔹 Executar comandos SQL manuais (via painel admin)
+app.post("/admin/sql", async (req, res) => {
+  const { sql } = req.body;
+  try {
+    const { rows } = await pool.query(sql);
+    res.send(JSON.stringify(rows, null, 2));
+  } catch (err) {
+    console.error(err);
+    res.status(400).send("Erro SQL: " + err.message);
   }
 });
 
