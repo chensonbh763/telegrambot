@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
+
   <!-- Monetag SDK -->
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
-  
+
   <style>
     body {
       font-family: sans-serif;
@@ -19,7 +19,7 @@
     h2 {
       color: #2a8f43;
     }
-    .tarefa {
+    .tarefa, .status-box {
       background: #fff;
       border: 1px solid #ccc;
       padding: 15px;
@@ -41,22 +41,50 @@
     button:hover {
       background-color: #237539;
     }
+    #indicacao {
+      font-size: 0.9em;
+      color: #333;
+      margin-top: 10px;
+      word-wrap: break-word;
+    }
   </style>
 </head>
 <body>
 
-  <h2>✅ Tarefas do Dia</h2>
+  <h2>✅ Minhas Tarefas</h2>
+  <div id="status" class="status-box">Carregando informações...</div>
   <div id="tarefas">Carregando tarefas...</div>
 
   <script>
+    const userId = Telegram.WebApp.initDataUnsafe?.user?.id;
+
+    async function carregarStatus() {
+      const res = await fetch("/api/status/" + userId);
+      const status = await res.json();
+      const box = document.getElementById("status");
+      const indicacao = window.location.href + "?start=" + userId;
+      box.innerHTML = `
+        <strong>👤 Nome:</strong> ${status.nome} <br>
+        <strong>🌟 VIP:</strong> ${status.vip ? "Sim" : "Não"} <br>
+        <strong>🎯 Pontos:</strong> ${status.pontos} <br>
+        <strong>👥 Indicações:</strong> ${status.indicacoes} <br><br>
+        <div id="indicacao">📢 Seu link de indicação:<br> <code>${indicacao}</code></div>
+        ${!status.vip ? '<button onclick="tornarVip()">💎 Tornar-se VIP</button>' : ''}
+      `;
+    }
+
+    function tornarVip() {
+      alert("💎 Em breve: sistema para upgrade VIP direto no app!");
+    }
+
     async function carregarTarefas() {
-      const res = await fetch("/api/tarefas");
+      const res = await fetch("/api/tarefas/" + userId);
       const tarefas = await res.json();
       const container = document.getElementById("tarefas");
       container.innerHTML = "";
 
       if (tarefas.length === 0) {
-        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
+        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível agora. Volte mais tarde!</p>";
         return;
       }
 
@@ -66,20 +94,30 @@
         el.innerHTML = `
           <strong>${t.titulo}</strong><br>
           Pontos: ${t.pontos}<br>
-          <button onclick="mostrarAnuncio('${t.link}')">📺 Assistir anúncio para liberar</button>
+          <button onclick="executarTarefa(${t.tarefa_id})">📺 Ver anúncio para liberar</button>
         `;
         container.appendChild(el);
       });
     }
 
-    function mostrarAnuncio(link) {
+    function executarTarefa(tarefa_id) {
       show_9579151().then(() => {
-        window.open(link, "_blank");
+        fetch("/api/concluir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id: userId, tarefa_id })
+        }).then(() => {
+          alert("✅ Tarefa concluída! Pontos adicionados.");
+          carregarTarefas();
+          carregarStatus();
+        });
       }).catch(() => {
-        alert("⚠️ Não foi possível exibir o anúncio.");
+        alert("⚠️ Anúncio não pôde ser exibido.");
       });
     }
 
+    Telegram.WebApp.ready();
+    carregarStatus();
     carregarTarefas();
   </script>
 
