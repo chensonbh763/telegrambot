@@ -96,6 +96,8 @@
     }
   }
 
+  <!-- Substitua sua função executarSQL() por esta abaixo -->
+<script>
   async function executarSQL() {
     const sql = document.getElementById("sql").value;
     try {
@@ -104,11 +106,44 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql })
       });
+
       const text = await res.text();
-      document.getElementById("respostaSQL").textContent = text;
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        // Se não for JSON, exibe como texto puro
+        document.getElementById("respostaSQL").innerHTML =
+          "<strong>Resposta:</strong><br><pre>" + text + "</pre>";
+        return;
+      }
+
+      // Se for JSON, gerar tabela
+      if (Array.isArray(result) && result.length > 0) {
+        const keys = Object.keys(result[0]);
+        let tabela = "<table border='1' cellpadding='8' cellspacing='0'><tr>";
+        keys.forEach(k => {
+          tabela += `<th>${k}</th>`;
+        });
+        tabela += "</tr>";
+
+        result.forEach(row => {
+          tabela += "<tr>";
+          keys.forEach(k => {
+            tabela += `<td>${row[k]}</td>`;
+          });
+          tabela += "</tr>";
+        });
+        tabela += "</table>";
+
+        document.getElementById("respostaSQL").innerHTML = tabela;
+      } else {
+        document.getElementById("respostaSQL").innerHTML =
+          "<pre>" + JSON.stringify(result, null, 2) + "</pre>";
+      }
     } catch (err) {
-      document.getElementById("respostaSQL").textContent =
-        "❌ Erro ao executar SQL: " + err;
+      document.getElementById("respostaSQL").innerHTML =
+        "<pre>❌ Erro ao executar SQL: " + err + "</pre>";
     }
   }
 </script>
