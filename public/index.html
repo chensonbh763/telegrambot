@@ -4,136 +4,103 @@
   <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
-  <!-- Monetag -->
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
-  
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-    }
-    h2 { color: #2a8f43; }
-    .tarefa, .status {
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-    button {
-      background: #2a8f43;
-      color: white;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      width: 100%;
-      margin-top: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #226e35;
-    }
+    body { font-family: sans-serif; background: #f9f9f9; max-width: 600px; margin: auto; padding: 20px; }
+    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    button { width: 100%; padding: 10px; margin-top: 10px; background: #2a8f43; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #1e6e34; }
   </style>
 </head>
 <body>
 
   <h2>✅ Minhas Tarefas</h2>
-
-  <div class="status" id="status">Carregando informações...</div>
+  <div id="status">Carregando informações...</div>
   <div id="tarefas">Carregando tarefas...</div>
 
   <script>
-    // 📌 Função para capturar parâmetro da URL
-    function getParam(name) {
+    function getParam(param) {
       const url = new URL(window.location.href);
-      return url.searchParams.get(name);
+      return url.searchParams.get(param);
     }
 
-    // 📌 ID do usuário
-    const userId = Telegram?.WebApp?.initDataUnsafe?.user?.id || getParam("id") || "0";
+    const telegram_id = Telegram?.WebApp?.initDataUnsafe?.user?.id || getParam("id") || "0";
     const referrer = getParam("ref");
 
-    // 📌 Registrar indicação
-    if (referrer && userId !== "0") {
+    if (referrer && telegram_id !== "0" && referrer !== telegram_id) {
       fetch("/api/indicar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userid: userId, referrer })
+        body: JSON.stringify({ userid: telegram_id, referrer })
       });
     }
 
-    // 📌 Carregar status
+    // Cria tarefas para o usuário se ainda não existirem
+    fetch("/api/atribuir_tarefas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegram_id })
+    }).then(() => {
+      carregarTarefas();
+      carregarStatus();
+    });
+
     async function carregarStatus() {
-      const res = await fetch("/api/status/" + userId);
+      const res = await fetch("/api/status/" + telegram_id);
       const dados = await res.json();
-      const s = document.getElementById("status");
-      const linkInd = `https://t.me/LucreMaisTask_bot?start=${userId}`;
-      s.innerHTML = `
-        <strong>👤 Nome:</strong> ${dados.nome}<br>
-        <strong>⭐ VIP:</strong> ${dados.vip ? "Sim" : "Não"}<br>
-        <strong>💰 Pontos:</strong> ${dados.pontos}<br>
-        <strong>👥 Indicações:</strong> ${dados.indicacoes}<br><br>
-        <button onclick="compartilhar()">📣 Compartilhar Link de Indicação</button>
-        <button onclick="alert('Em breve: upgrade para VIP direto pelo app')">🚀 Tornar-se VIP</button>
+
+      document.getElementById("status").innerHTML = `
+        👤 <strong>${dados.nome}</strong><br>
+        💰 Pontos: ${dados.pontos} | ⭐ VIP: ${dados.vip ? "Sim" : "Não"}<br>
+        👥 Indicações: ${dados.indicacoes}<br><br>
+        <button onclick="compartilhar()">📣 Compartilhar link de indicação</button>
       `;
     }
 
     function compartilhar() {
-      const link = `https://t.me/LucreMaisTask_bot?start=${userId}`;
-      navigator.clipboard.writeText(link).then(() => {
-        alert("✅ Link de indicação copiado!");
-      });
+      const link = `https://t.me/LucreMaisTask_bot?start=${telegram_id}`;
+      navigator.clipboard.writeText(link);
+      alert("🔗 Link copiado com sucesso!");
     }
 
-    // 📌 Carregar tarefas
     async function carregarTarefas() {
-      const res = await fetch("/api/tarefas/" + userId);
+      const res = await fetch("/api/tarefas/" + telegram_id);
       const tarefas = await res.json();
-      const div = document.getElementById("tarefas");
-      div.innerHTML = "";
+      const container = document.getElementById("tarefas");
+      container.innerHTML = "";
 
       if (tarefas.length === 0) {
-        div.innerHTML = "<p>🎉 Nenhuma tarefa pendente no momento!</p>";
+        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível no momento.</p>";
         return;
       }
 
       tarefas.forEach(t => {
         const el = document.createElement("div");
-        el.className = "tarefa";
+        el.className = "card";
         el.innerHTML = `
           <strong>${t.titulo}</strong><br>
           Pontos: ${t.pontos}<br>
-          <button onclick="fazerTarefa(${t.tarefa_id}, '${t.link}')">✅ Concluir Tarefa</button>
+          <button onclick="concluirTarefa(${t.tarefa_id}, '${t.link}')">📺 Concluir com anúncio</button>
         `;
-        div.appendChild(el);
+        container.appendChild(el);
       });
     }
 
-    // 📌 Executar tarefa
-    function fazerTarefa(tarefaId, link) {
+    function concluirTarefa(tarefa_id, link) {
       show_9579151().then(() => {
         fetch("/api/concluir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegram_id: userId, tarefa_id: tarefaId })
+          body: JSON.stringify({ telegram_id, tarefa_id })
         }).then(() => {
           window.open(link, "_blank");
           carregarStatus();
           carregarTarefas();
         });
       }).catch(() => {
-        alert("⚠️ Não foi possível exibir o anúncio.");
+        alert("⚠️ Não foi possível carregar o anúncio.");
       });
     }
-
-    carregarStatus();
-    carregarTarefas();
   </script>
-
 </body>
 </html>
