@@ -4,135 +4,47 @@
   <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
   <style>
-    body { font-family: sans-serif; background: #f9f9f9; max-width: 600px; margin: auto; padding: 20px; }
-    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    button { width: 100%; padding: 10px; margin-top: 10px; background: #2a8f43; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:hover { background: #1e6e34; }
-    .erro { color: red; font-size: 0.9rem; margin-top: 10px; }
+    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; max-width: 600px; margin: auto; }
+    h2 { color: #2a8f43; }
+    #status { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-  <h2>✅ Minhas Tarefas</h2>
-  <div id="status">Carregando informações...</div>
-  <div id="tarefas">Carregando tarefas...</div>
-  <div class="erro" id="erroConsole"></div>
+  <h2>✅ Seu Status</h2>
+  <div id="status">🔄 Carregando status...</div>
 
   <script>
+    // Função para pegar parâmetros da URL
     function getParam(param) {
       const url = new URL(window.location.href);
       return url.searchParams.get(param);
     }
 
+    // Obter telegram_id via Telegram Mini App ou via URL (?id=...)
     const telegram_id = Telegram?.WebApp?.initDataUnsafe?.user?.id || getParam("id") || "0";
-    const referrer = getParam("ref");
 
-    console.log("📲 Telegram ID detectado:", telegram_id);
-    console.log("👥 Referrer detectado:", referrer);
-
-    if (referrer && telegram_id !== "0" && referrer !== telegram_id) {
-      console.log("🔁 Enviando indicação...");
-      fetch(`/api/indicar?userid=${telegram_id}&referrer=${referrer}`)
-        .then(() => console.log("✅ Indicação registrada"))
-        .catch(err => logErro("Erro ao registrar indicação: " + err));
-    }
-
-    fetch("/api/atribuir_tarefas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegram_id })
-    }).then(res => res.text())
-      .then(txt => {
-        console.log("📋 Atribuição de tarefas:", txt);
-        carregarTarefas();
-        carregarStatus();
-      })
-      .catch(err => logErro("Erro ao atribuir tarefas: " + err));
-
+    // Chamar rota do backend para pegar status
     async function carregarStatus() {
       try {
-        const res = await fetch("/api/status/" + telegram_id);
+        const res = await fetch(`/api/status/${telegram_id}`);
         const dados = await res.json();
-        console.log("ℹ️ Status do usuário:", dados);
 
         document.getElementById("status").innerHTML = `
           👤 <strong>${dados.nome}</strong><br>
           💰 Pontos: ${dados.pontos} | ⭐ VIP: ${dados.vip ? "Sim" : "Não"}<br>
-          👥 Indicações: ${dados.indicacoes}<br><br>
-          <button onclick="compartilhar()">📣 Compartilhar link de indicação</button>
+          👥 Indicações: ${dados.indicacoes}<br>
+          🆔 ID: ${telegram_id}
         `;
       } catch (err) {
-        logErro("Erro ao carregar status: " + err);
+        document.getElementById("status").innerHTML = "❌ Erro ao carregar status.";
+        console.error("Erro ao buscar status:", err);
       }
     }
 
-    function compartilhar() {
-      const link = `https://t.me/LucreMaisTask_bot?start=${telegram_id}`;
-      navigator.clipboard.writeText(link);
-      alert("🔗 Link copiado com sucesso!");
-    }
-
-    async function carregarTarefas() {
-      try {
-        const res = await fetch("/api/tarefas/" + telegram_id);
-        const tarefas = await res.json();
-        console.log("📝 Tarefas carregadas:", tarefas);
-
-        const container = document.getElementById("tarefas");
-        container.innerHTML = "";
-
-        if (tarefas.length === 0) {
-          container.innerHTML = "<p>🎉 Nenhuma tarefa disponível no momento.</p>";
-          return;
-        }
-
-        tarefas.forEach(t => {
-          const el = document.createElement("div");
-          el.className = "card";
-          el.innerHTML = `
-            <strong>${t.titulo}</strong><br>
-            Pontos: ${t.pontos}<br>
-            <button onclick="concluirTarefa(${t.tarefa_id}, '${t.link}')">📺 Concluir com anúncio</button>
-          `;
-          container.appendChild(el);
-        });
-      } catch (err) {
-        logErro("Erro ao carregar tarefas: " + err);
-      }
-    }
-
-    function concluirTarefa(tarefa_id, link) {
-      console.log("▶️ Tarefa clicada:", tarefa_id);
-      show_9579151().then(() => {
-        fetch("/api/concluir", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegram_id, tarefa_id })
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.erro) {
-              alert("⚠️ " + data.erro);
-              console.warn("⚠️ Erro ao concluir:", data.erro);
-            } else {
-              console.log("✅ Tarefa concluída:", tarefa_id);
-              window.open(link, "_blank");
-              carregarStatus();
-              carregarTarefas();
-            }
-          }).catch(err => logErro("Erro ao concluir tarefa: " + err));
-      }).catch(() => {
-        alert("⚠️ Não foi possível exibir o anúncio.");
-        logErro("Erro Monetag");
-      });
-    }
-
-    function logErro(msg) {
-      console.error(msg);
-      document.getElementById("erroConsole").textContent = msg;
-    }
+    carregarStatus();
   </script>
+
 </body>
 </html>
