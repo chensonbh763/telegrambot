@@ -27,23 +27,21 @@
     const telegram_id = Telegram?.WebApp?.initDataUnsafe?.user?.id || getParam("id") || "0";
     const referrer = getParam("ref");
 
+    // Corrigido: usar GET em vez de POST para /api/indicar
     if (referrer && telegram_id !== "0" && referrer !== telegram_id) {
-      fetch("/api/indicar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userid: telegram_id, referrer })
-      });
+      fetch(`/api/indicar?userid=${telegram_id}&referrer=${referrer}`);
     }
 
-    // Cria tarefas para o usuário se ainda não existirem
+    // Corrigido: tratar resposta como texto
     fetch("/api/atribuir_tarefas", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telegram_id })
-    }).then(() => {
-      carregarTarefas();
-      carregarStatus();
-    });
+    }).then(res => res.text())
+      .then(() => {
+        carregarTarefas();
+        carregarStatus();
+      });
 
     async function carregarStatus() {
       const res = await fetch("/api/status/" + telegram_id);
@@ -86,16 +84,23 @@
       });
     }
 
+    // Corrigido: tratar erro ao concluir tarefa
     function concluirTarefa(tarefa_id, link) {
       show_9579151().then(() => {
         fetch("/api/concluir", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ telegram_id, tarefa_id })
-        }).then(() => {
-          window.open(link, "_blank");
-          carregarStatus();
-          carregarTarefas();
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.erro) {
+            alert("⚠️ " + data.erro);
+          } else {
+            window.open(link, "_blank");
+            carregarStatus();
+            carregarTarefas();
+          }
         });
       }).catch(() => {
         alert("⚠️ Não foi possível carregar o anúncio.");
