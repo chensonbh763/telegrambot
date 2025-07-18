@@ -62,22 +62,32 @@ app.get("/api/status/:telegram_id", async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      "SELECT nome, vip, pontos, indicacoes FROM usuarios WHERE telegram_id = $1",
+      `SELECT telegram_id, nome, tarefas_feitas, vip, pontos, indicacoes 
+       FROM usuarios 
+       WHERE telegram_id = $1`,
       [telegram_id]
     );
 
     if (rows.length === 0) {
       await pool.query(
-        "INSERT INTO usuarios (telegram_id, nome) VALUES ($1, $2)",
+        `INSERT INTO usuarios (telegram_id, nome, tarefas_feitas, vip, pontos, indicacoes) 
+         VALUES ($1, $2, 0, false, 0, 0)`,
         [telegram_id, "Usuário"]
       );
-      return res.json({ nome: "Usuário", vip: false, pontos: 0, indicacoes: 0 });
+      return res.json({
+        telegram_id,
+        nome: "Usuário",
+        tarefas_feitas: 0,
+        vip: false,
+        pontos: 0,
+        indicacoes: 0
+      });
     }
 
     res.json(rows[0]);
   } catch (err) {
     console.error("Erro ao buscar status:", err);
-    res.status(500).json({ erro: "Erro ao buscar status" });
+    res.status(500).json({ erro: "Erro ao buscar status do usuário" });
   }
 });
 
