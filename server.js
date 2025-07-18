@@ -145,6 +145,66 @@ app.get("/api/indicar", async (req, res) => {
     res.status(500).send("Erro ao registrar indicação.");
   }
 });
+// 🔹 Atribuir tarefas ao novo usuário
+app.post("/api/atribuir_tarefas", async (req, res) => {
+  const { telegram_id } = req.body;
+
+  if (!telegram_id) {
+    return res.status(400).send("❌ Telegram ID ausente.");
+  }
+
+  try {
+    // Verifica se já há tarefas atribuídas hoje
+    const hoje = new Date().toISOString().slice(0, 10);
+    const existe = await pool.query(
+      `SELECT * FROM tarefas_usuario WHERE telegram_id = $1 AND data_criada = $2`,
+      [telegram_id, hoje]
+    );
+
+    if (existe.rows.length > 0) {
+      return res.send("🔁 Tarefas já atribuídas hoje.");
+    }
+
+    // Busca tarefas ativas e válidas
+    const tarefas = await pool.query(
+      `SELECT id, titulo, link, pontos, vip, visibilidade, tipo, validade
+       FROM tarefas
+       WHERE ativa = true`
+    );
+
+    // Copia cada tarefa para o usuário
+    for (const t of tarefas.rows) {
+      await pool.query(
+        `INSERT INTO tarefas_usuario (
+           telegram_id, tarefa_id, titulo, link, pontos, status, data_criada,
+           vip, visibilidade, tipo, validade, expirada
+         ) VALUES (
+           $1, $2, $3, $4, $5, 'pendente', $6, $7, $8, $9, $10, false
+         )`,
+        [
+          telegram_id,
+          t.id,
+          t.titulo,
+          t.link,
+          t.pontos,
+          hoje,
+          t.vip,
+          t.visibilidade,
+          t.tipo,
+          t.validade
+        ]
+      );
+    }
+
+    res.send("✅ Tarefas atribuídas com sucesso!");
+  } catch (err) {
+    console.error("Erro ao atribuir tarefas:", err);
+    res.status(500).send("Erro ao atribuir tarefas.");
+  }
+});
+
+
+
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
