@@ -1,60 +1,68 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const { Pool } = require("pg");
+const pool = require("./db");
 const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// PostgreSQL Pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false } // Necessário para Railway e hospedagens seguras
-});
-
-// Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public")); // onde está o index.html
+app.use(express.static("public"));
 
-// ✅ Rota simples de verificação
+// ✅ Rota principal para checagem
 app.get("/", (req, res) => {
-  res.send("✅ API LucreMaisTask está no ar!");
+  res.send("🚀 API LucreMaisTask está no ar!");
 });
 
-// 🔹 Rota para buscar status do usuário
-app.get("/api/status/:telegram_id", async (req, res) => {
-  const { telegram_id } = req.params;
-
+// 🔹 Listar tarefas ativas
+app.get("/api/tarefas", async (req, res) => {
   try {
     const { rows } = await pool.query(
-      "SELECT nome, vip, pontos, indicacoes FROM usuarios WHERE telegram_id = $1",
-      [telegram_id]
+      "SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC"
     );
+    res.json(rows);
+  } catch (error) {
+    console.error("Erro ao buscar tarefas:", error);
+    res.status(500).json({ erro: "Erro ao listar tarefas" });
+  }
+});
 
-    if (rows.length === 0) {
-      await pool.query(
-        "INSERT INTO usuarios (telegram_id, nome) VALUES ($1, $2)",
-        [telegram_id, "Usuário"]
-      );
-      return res.json({ nome: "Usuário", vip: false, pontos: 0, indicacoes: 0 });
-    }
-
-    res.json(rows[0]);
+// 🔹 Criar nova tarefa (via painel admin)
+app.post("/admin/tarefa", async (req, res) => {
+  const { titulo, link, dia, pontos } = req.body;
+  try {
+    await pool.query(
+      "INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ($1, $2, $3, $4, true)",
+      [titulo, link, dia, pontos]
+    );
+    res.send("✅ Tarefa criada com sucesso!");
   } catch (err) {
-    console.error("Erro ao buscar status:", err);
-    res.status(500).json({ erro: "Erro ao buscar status" });
+    console.error(err);
+    res.status(500).send("Erro ao criar tarefa.");
+  }
+});
+
+// 🔹 Executar comandos SQL manuais (via painel admin)
+app.post("/admin/sql", async (req, res) => {
+  const { sql } = req.body;
+  try {
+    const { rows } = await pool.query(sql);
+    res.send(JSON.stringify(rows, null, 2));
+  } catch (err) {
+    console.error(err);
+    res.status(400).send("Erro SQL: " + err.message);
   }
 });
 
 // 🔹 Telegram Bot
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-bot.onText(/\/start(?: (.+))?/, (msg, match) => {
+bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
 
-  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique abaixo para acessar as tarefas do dia:", {
+  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia e começar a lucrar. 💸", {
     reply_markup: {
       inline_keyboard: [[
         {
@@ -66,7 +74,6 @@ bot.onText(/\/start(?: (.+))?/, (msg, match) => {
   });
 });
 
-// 🔹 Iniciar servidor
 app.listen(PORT, () => {
-  console.log(`✅ Servidor rodando na porta ${PORT}`);
+  console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
