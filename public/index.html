@@ -4,72 +4,116 @@
   <meta charset="UTF-8">
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
+
   <!-- Monetag SDK -->
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
-  
+
   <style>
     body {
       font-family: sans-serif;
-      padding: 20px;
+      background: #f9f9f9;
       max-width: 600px;
       margin: auto;
-      background: #f9f9f9;
+      padding: 20px;
     }
     h2 {
       color: #2a8f43;
     }
-    .tarefa {
-      background: #fff;
-      border: 1px solid #ccc;
+    .card {
+      background: white;
       padding: 15px;
-      margin: 15px 0;
+      margin: 10px 0;
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     button {
-      padding: 10px 16px;
-      margin-top: 10px;
-      font-size: 1rem;
       width: 100%;
-      background-color: #2a8f43;
+      padding: 10px;
+      margin-top: 10px;
+      background: #2a8f43;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
     button:hover {
-      background-color: #237539;
+      background: #1e6e34;
     }
   </style>
 </head>
 <body>
 
-  <h2>✅ Tarefas do Dia</h2>
-  <div id="tarefas">Carregando tarefas...</div>
+  <h2>✅ Minhas Tarefas</h2>
+  <div id="status">🔄 Carregando informações...</div>
+  <div id="tarefas">🔄 Carregando tarefas...</div>
 
   <script>
-    async function carregarTarefas() {
-      const res = await fetch("/api/tarefas");
-      const tarefas = await res.json();
-      const container = document.getElementById("tarefas");
-      container.innerHTML = "";
+    function getParam(param) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(param);
+    }
 
-      if (tarefas.length === 0) {
-        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
-        return;
-      }
+    const telegram_id = getParam("id") || "0";
 
-      tarefas.forEach(t => {
-        const el = document.createElement("div");
-        el.className = "tarefa";
-        el.innerHTML = `
-          <strong>${t.titulo}</strong><br>
-          Pontos: ${t.pontos}<br>
-          <button onclick="mostrarAnuncio('${t.link}')">📺 Assistir anúncio para liberar</button>
+    if (telegram_id === "0") {
+      document.getElementById("status").textContent = "❌ ID de usuário não encontrado.";
+    } else {
+      iniciar();
+    }
+
+    async function iniciar() {
+      await carregarStatus(telegram_id);
+      await carregarTarefas(); // ⚠️ mostra tarefas globais, até termos tarefas personalizadas
+    }
+
+    async function carregarStatus(id) {
+      try {
+        const res = await fetch("/api/status/" + id);
+        const user = await res.json();
+
+        document.getElementById("status").innerHTML = `
+          👤 <strong>${user.nome}</strong><br>
+          💰 Pontos: ${user.pontos} | ⭐ VIP: ${user.vip ? "Sim" : "Não"}<br>
+          👥 Indicações: ${user.indicacoes}<br><br>
+          <button onclick="compartilhar('${id}')">📣 Compartilhar link</button>
         `;
-        container.appendChild(el);
-      });
+      } catch (err) {
+        document.getElementById("status").textContent = "❌ Erro ao carregar status.";
+      }
+    }
+
+    function compartilhar(id) {
+      const link = `https://t.me/LucreMaisTask_bot?start=${id}`;
+      navigator.clipboard.writeText(link);
+      alert("🔗 Link de indicação copiado com sucesso!");
+    }
+
+    async function carregarTarefas() {
+      try {
+        const res = await fetch("/api/tarefas"); // futuramente: `/api/tarefas/${telegram_id}`
+        const tarefas = await res.json();
+        const container = document.getElementById("tarefas");
+        container.innerHTML = "";
+
+        if (tarefas.length === 0) {
+          container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje.</p>";
+          return;
+        }
+
+        tarefas.forEach(t => {
+          const el = document.createElement("div");
+          el.className = "card";
+          el.innerHTML = `
+            <strong>${t.titulo}</strong><br>
+            Pontos: ${t.pontos}<br>
+            <button onclick="mostrarAnuncio('${t.link}')">📺 Assistir anúncio</button>
+          `;
+          container.appendChild(el);
+        });
+
+      } catch (err) {
+        document.getElementById("tarefas").textContent = "❌ Erro ao carregar tarefas.";
+      }
     }
 
     function mostrarAnuncio(link) {
@@ -79,9 +123,6 @@
         alert("⚠️ Não foi possível exibir o anúncio.");
       });
     }
-
-    carregarTarefas();
   </script>
-
 </body>
 </html>
