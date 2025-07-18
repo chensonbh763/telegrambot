@@ -108,7 +108,43 @@ bot.onText(/\/start/, (msg) => {
     }
   });
 });
+// 🔹 Registrar indicação
+app.get("/api/indicar", async (req, res) => {
+  const { userid, referrer } = req.query;
 
+  if (!userid || !referrer || userid === referrer) {
+    return res.status(400).json({ erro: "Dados inválidos ou autoindicação bloqueada." });
+  }
+
+  try {
+    // Verifica se já existe a indicação
+    const { rows } = await pool.query(
+      "SELECT * FROM indicacoes WHERE indicado = $1",
+      [userid]
+    );
+
+    if (rows.length > 0) {
+      return res.send("🔁 Indicação já registrada anteriormente.");
+    }
+
+    // Registra nova indicação
+    await pool.query(
+      "INSERT INTO indicacoes (indicado, indicador) VALUES ($1, $2)",
+      [userid, referrer]
+    );
+
+    // Atualiza contador de indicações no perfil do indicador
+    await pool.query(
+      "UPDATE usuarios SET indicacoes = indicacoes + 1 WHERE telegram_id = $1",
+      [referrer]
+    );
+
+    res.send("✅ Indicação registrada com sucesso!");
+  } catch (err) {
+    console.error("Erro ao registrar indicação:", err);
+    res.status(500).send("Erro ao registrar indicação.");
+  }
+});
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
