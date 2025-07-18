@@ -63,16 +63,12 @@ bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
 
   bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!", {
-  reply_markup: {
-    inline_keyboard: [[
-      {
-        text: "📲 Acessar Mini App",
-        web_app: { url: `https://web-production-10f9d.up.railway.app?id=${chatId}` }
-      }
-    ]]
-  }
-});
-
+    reply_markup: {
+      inline_keyboard: [[
+        {
+          text: "📲 Acessar Mini App",
+          web_app: { url: `https://web-production-10f9d.up.railway.app?id=${chatId}` }
+        }
       ]]
     }
   });
