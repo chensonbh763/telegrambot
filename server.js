@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const pool = require("./db");
+const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,62 +11,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// Check-in do usuário
-app.post("/api/checkin", async (req, res) => {
-  const { telegram_id } = req.body;
-  const hoje = new Date().toISOString().split("T")[0];
+// ✅ Rota principal para checagem
+app.get("/", (req, res) => {
+  res.send("🚀 API LucreMaisTask está no ar!");
+});
 
+// 🔹 Listar tarefas ativas
+app.get("/api/tarefas", async (req, res) => {
   try {
-    const existe = await pool.query(
-      "SELECT 1 FROM checkins WHERE telegram_id = $1 AND data = $2",
-      [telegram_id, hoje]
+    const { rows } = await pool.query(
+      "SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC"
     );
-
-    if (existe.rowCount > 0) {
-      return res.status(200).json({ mensagem: "✅ Check-in já feito hoje." });
-    }
-
-    await pool.query(
-      "INSERT INTO checkins (telegram_id, data, pontos) VALUES ($1, $2, 1)",
-      [telegram_id, hoje]
-    );
-
-    res.json({ mensagem: "🎉 Check-in registrado e pontos adicionados!" });
-  } catch (err) {
-    console.error("Erro ao registrar check-in:", err);
-    res.status(500).json({ erro: "Erro ao registrar check-in" });
+    res.json(rows);
+  } catch (error) {
+    console.error("Erro ao buscar tarefas:", error);
+    res.status(500).json({ erro: "Erro ao listar tarefas" });
   }
 });
-// Registrar indicação
-app.post("/api/indicacoes", async (req, res) => {
-  const { indicado, referrer } = req.body;
 
-  if (!indicado || !referrer || indicado === referrer) {
-    return res.status(400).json({ erro: "Dados inválidos para indicação." });
-  }
-
+// 🔹 Criar nova tarefa (via painel admin)
+app.post("/admin/tarefa", async (req, res) => {
+  const { titulo, link, dia, pontos } = req.body;
   try {
-    // Verifica se já existe indicação desse referrer para esse indicado
-    const existe = await pool.query(
-      "SELECT 1 FROM indicacoes WHERE indicado = $1",
-      [indicado]
-    );
-
-    if (existe.rowCount > 0) {
-      return res.status(200).json({ mensagem: "Indicação já registrada." });
-    }
-
     await pool.query(
-      "INSERT INTO indicacoes (indicado, referrer) VALUES ($1, $2)",
-      [indicado, referrer]
+      "INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ($1, $2, $3, $4, true)",
+      [titulo, link, dia, pontos]
     );
-
-    res.status(201).json({ mensagem: "🎉 Indicação registrada com sucesso!" });
+    res.send("✅ Tarefa criada com sucesso!");
   } catch (err) {
-    console.error("Erro ao registrar indicação:", err);
-    res.status(500).json({ erro: "Erro ao registrar indicação" });
+    console.error(err);
+    res.status(500).send("Erro ao criar tarefa.");
   }
 });
+
+// 🔹 Executar comandos SQL manuais (via painel admin)
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
@@ -77,7 +56,24 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
+// 🔹 Telegram Bot
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+
+  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia e começar a lucrar. 💸", {
+    reply_markup: {
+      inline_keyboard: [[
+        {
+          text: "📲 Acessar Mini App",
+          web_app: { url: "https://web-production-10f9d.up.railway.app" }
+        }
+      ]]
+    }
+  });
+});
 
 app.listen(PORT, () => {
-  console.log("✅ API de Check-in ativa na porta", PORT);
+  console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
