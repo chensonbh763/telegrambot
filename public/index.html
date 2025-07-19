@@ -14,6 +14,27 @@
       margin: auto;
       padding: 20px;
     }
+    .top-menu {
+      background: #2a8f43;
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+    .top-menu a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .top-menu a:hover {
+      text-decoration: underline;
+    }
     .card {
       background: white;
       padding: 15px;
@@ -45,6 +66,14 @@
 </head>
 <body>
 
+  <!-- MENU SUPERIOR -->
+  <nav class="top-menu">
+    <a href="index.html">🏠 Início</a>
+    <a href="indicacoes.html">👥 Indicações</a>
+    <a href="pontuacao.html">📊 Pontuação</a>
+    <a href="saque.html">💰 Saque</a>
+  </nav>
+
   <h2>✅ LUCRE MAIS TAREFAS</h2>
 
   <div class="card">
@@ -75,7 +104,6 @@
   <div id="checkin_banner"></div>
 
   <script>
-    // Função para anúncio do check-in
     const checkin = () => {
       window.Sonar.show({
         adUnit: 'checkin_diario',
@@ -89,7 +117,6 @@
       });
     };
 
-    // Banner fixo AdSonar
     const showBannerAd = () => {
       window.Sonar.show({
         adUnit: 'checkin_banner',
@@ -100,11 +127,9 @@
     };
     setTimeout(showBannerAd, 1000);
 
-    // Função Monetag para tarefa de compartilhamento
     const shareReward = () => {
       show_9579151().then(() => {
         alert("✅ Obrigado por compartilhar! Seus pontos foram adicionados.");
-        // Aqui você pode integrar com seu backend para validar e registrar a ação
       }).catch(() => {
         alert("❌ Ocorreu um erro ao exibir o anúncio.");
       });
