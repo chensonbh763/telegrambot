@@ -1,24 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- Monetag SDK -->
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
-
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-    }
-    h2 {
-      color: #2a8f43;
-    }
+    body { font-family: sans-serif; background: #f9f9f9; max-width: 600px; margin: auto; padding: 20px; }
+    h2 { color: #2a8f43; }
     .card {
       background: white;
       padding: 15px;
@@ -36,15 +25,13 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    button:hover {
-      background: #1e6e34;
-    }
+    button:hover { background: #1e6e34; }
   </style>
 </head>
 <body>
 
   <h2>✅ Minhas Tarefas</h2>
-  <div id="status">🔄 Carregando informações...</div>
+  <div id="status">🔄 Carregando status...</div>
   <div id="tarefas">🔄 Carregando tarefas...</div>
 
   <script>
@@ -53,50 +40,47 @@
       return url.searchParams.get(param);
     }
 
-    const telegram_id = getParam("id") || "0";
+    const telegram_id = Telegram?.WebApp?.initDataUnsafe?.user?.id || getParam("id");
 
-    if (telegram_id === "0") {
-      document.getElementById("status").textContent = "❌ ID de usuário não encontrado.";
+    if (!telegram_id) {
+      document.getElementById("status").innerHTML = "❌ ID de usuário não encontrado.";
+      document.getElementById("tarefas").innerHTML = "";
     } else {
-      iniciar();
+      carregarStatus();
+      carregarTarefas();
     }
 
-    async function iniciar() {
-      await carregarStatus(telegram_id);
-      await carregarTarefas(); // ⚠️ mostra tarefas globais, até termos tarefas personalizadas
-    }
-
-    async function carregarStatus(id) {
+    async function carregarStatus() {
       try {
-        const res = await fetch("/api/status/" + id);
+        const res = await fetch(`/api/status/${telegram_id}`);
         const user = await res.json();
 
         document.getElementById("status").innerHTML = `
           👤 <strong>${user.nome}</strong><br>
           💰 Pontos: ${user.pontos} | ⭐ VIP: ${user.vip ? "Sim" : "Não"}<br>
           👥 Indicações: ${user.indicacoes}<br><br>
-          <button onclick="compartilhar('${id}')">📣 Compartilhar link</button>
+          <button onclick="compartilhar()">📣 Compartilhar link de indicação</button>
         `;
       } catch (err) {
-        document.getElementById("status").textContent = "❌ Erro ao carregar status.";
+        document.getElementById("status").innerHTML = "❌ Erro ao carregar status.";
       }
     }
 
-    function compartilhar(id) {
-      const link = `https://t.me/LucreMaisTask_bot?start=${id}`;
+    function compartilhar() {
+      const link = `https://t.me/LucreMaisTask_bot?start=${telegram_id}`;
       navigator.clipboard.writeText(link);
-      alert("🔗 Link de indicação copiado com sucesso!");
+      alert("🔗 Link copiado com sucesso!");
     }
 
     async function carregarTarefas() {
       try {
-        const res = await fetch("/api/tarefas"); // futuramente: `/api/tarefas/${telegram_id}`
+        const res = await fetch(`/api/tarefas/${telegram_id}`);
         const tarefas = await res.json();
         const container = document.getElementById("tarefas");
         container.innerHTML = "";
 
-        if (tarefas.length === 0) {
-          container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje.</p>";
+        if (!tarefas.length) {
+          container.innerHTML = "<p>🎉 Nenhuma tarefa disponível no momento.</p>";
           return;
         }
 
@@ -106,19 +90,32 @@
           el.innerHTML = `
             <strong>${t.titulo}</strong><br>
             Pontos: ${t.pontos}<br>
-            <button onclick="mostrarAnuncio('${t.link}')">📺 Assistir anúncio</button>
+            <button onclick="concluirTarefa(${t.tarefa_id}, '${t.link}')">📺 Assistir anúncio</button>
           `;
           container.appendChild(el);
         });
-
       } catch (err) {
-        document.getElementById("tarefas").textContent = "❌ Erro ao carregar tarefas.";
+        document.getElementById("tarefas").innerHTML = "❌ Erro ao carregar tarefas.";
       }
     }
 
-    function mostrarAnuncio(link) {
+    function concluirTarefa(tarefa_id, link) {
       show_9579151().then(() => {
-        window.open(link, "_blank");
+        fetch("/api/concluir", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id, tarefa_id })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.erro) {
+            alert("⚠️ " + data.erro);
+          } else {
+            window.open(link, "_blank");
+            carregarStatus();
+            carregarTarefas();
+          }
+        });
       }).catch(() => {
         alert("⚠️ Não foi possível exibir o anúncio.");
       });
