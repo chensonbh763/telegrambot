@@ -5,6 +5,7 @@
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script> <!-- SDK Monetag -->
   <style>
     body {
       font-family: sans-serif;
@@ -45,10 +46,21 @@
 <body>
 
   <h2>✅ LUCRE MAIS TAREFAS</h2>
+
   <div class="card">
-    <p>-  Quer ganhar pontos rapidinho? Assista um vídeo e turbine sua pontuação!
-</p>
+    <p>- Quer ganhar pontos rapidinho? Assista um vídeo e turbine sua pontuação!</p>
     <button onclick="checkin()">📺 Ver anúncio e ganhar pontos</button>
+  </div>
+
+  <div class="card">
+    <h3>📢 Compartilhe e Ganhe!</h3>
+    <p>Convide amigos para usar o <strong>LucreMaisTask_bot</strong>:</p>
+    <ol>
+      <li>Compartilhe o link <a href="https://t.me/LucreMaisTask_bot" target="_blank">t.me/LucreMaisTask_bot</a> em grupos ou com amigos.</li>
+      <li>Clique no botão abaixo após compartilhar.</li>
+      <li>Assista ao anúncio e receba seus pontos!</li>
+    </ol>
+    <button onclick="shareReward()">🔗 Compartilhei! Quero meus pontos</button>
   </div>
 
   <div class="vip-box">
@@ -63,7 +75,7 @@
   <div id="checkin_banner"></div>
 
   <script>
-    // Função para mostrar anúncio recompensado
+    // Função para anúncio do check-in
     const checkin = () => {
       window.Sonar.show({
         adUnit: 'checkin_diario',
@@ -71,14 +83,13 @@
         onStart: () => console.log("Carregando anúncio..."),
         onReward: () => {
           alert("✅ Você ganhou seus pontos de check-in!");
-          // Aqui você pode integrar com seu backend futuramente
         },
         onError: () => alert("❌ Erro ao carregar anúncio."),
         onClose: () => console.log("Anúncio fechado.")
       });
     };
 
-    // Banner fixo
+    // Banner fixo AdSonar
     const showBannerAd = () => {
       window.Sonar.show({
         adUnit: 'checkin_banner',
@@ -87,9 +98,18 @@
         onRefresh: (status) => console.log("🔄 Banner atualizado:", status)
       });
     };
-
-    // Inicia banner após carregar
     setTimeout(showBannerAd, 1000);
+
+    // Função Monetag para tarefa de compartilhamento
+    const shareReward = () => {
+      show_9579151().then(() => {
+        alert("✅ Obrigado por compartilhar! Seus pontos foram adicionados.");
+        // Aqui você pode integrar com seu backend para validar e registrar a ação
+      }).catch(() => {
+        alert("❌ Ocorreu um erro ao exibir o anúncio.");
+      });
+    };
   </script>
+
 </body>
 </html>
