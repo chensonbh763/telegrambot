@@ -36,7 +36,36 @@ app.post("/api/checkin", async (req, res) => {
     res.status(500).json({ erro: "Erro ao registrar check-in" });
   }
 });
+// Registrar indicação
+app.post("/api/indicacoes", async (req, res) => {
+  const { indicado, referrer } = req.body;
 
+  if (!indicado || !referrer || indicado === referrer) {
+    return res.status(400).json({ erro: "Dados inválidos para indicação." });
+  }
+
+  try {
+    // Verifica se já existe indicação desse referrer para esse indicado
+    const existe = await pool.query(
+      "SELECT 1 FROM indicacoes WHERE indicado = $1",
+      [indicado]
+    );
+
+    if (existe.rowCount > 0) {
+      return res.status(200).json({ mensagem: "Indicação já registrada." });
+    }
+
+    await pool.query(
+      "INSERT INTO indicacoes (indicado, referrer) VALUES ($1, $2)",
+      [indicado, referrer]
+    );
+
+    res.status(201).json({ mensagem: "🎉 Indicação registrada com sucesso!" });
+  } catch (err) {
+    console.error("Erro ao registrar indicação:", err);
+    res.status(500).json({ erro: "Erro ao registrar indicação" });
+  }
+});
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
