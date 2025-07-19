@@ -10,9 +10,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// Check-in do usuário
+// 🟢 Check-in do usuário (1x por dia)
 app.post("/api/checkin", async (req, res) => {
   const { telegram_id } = req.body;
+
+  if (!telegram_id) {
+    return res.status(400).json({ erro: "telegram_id é obrigatório." });
+  }
+
   const hoje = new Date().toISOString().split("T")[0];
 
   try {
@@ -33,10 +38,11 @@ app.post("/api/checkin", async (req, res) => {
     res.json({ mensagem: "🎉 Check-in registrado e pontos adicionados!" });
   } catch (err) {
     console.error("Erro ao registrar check-in:", err);
-    res.status(500).json({ erro: "Erro ao registrar check-in" });
+    res.status(500).json({ erro: "Erro interno ao registrar check-in." });
   }
 });
-// Registrar indicação
+
+// 🟢 Registro de Indicação
 app.post("/api/indicacoes", async (req, res) => {
   const { indicado, referrer } = req.body;
 
@@ -45,7 +51,6 @@ app.post("/api/indicacoes", async (req, res) => {
   }
 
   try {
-    // Verifica se já existe indicação desse referrer para esse indicado
     const existe = await pool.query(
       "SELECT 1 FROM indicacoes WHERE indicado = $1",
       [indicado]
@@ -63,20 +68,23 @@ app.post("/api/indicacoes", async (req, res) => {
     res.status(201).json({ mensagem: "🎉 Indicação registrada com sucesso!" });
   } catch (err) {
     console.error("Erro ao registrar indicação:", err);
-    res.status(500).json({ erro: "Erro ao registrar indicação" });
-  }
-});
-app.post("/admin/sql", async (req, res) => {
-  const { sql } = req.body;
-  try {
-    const { rows } = await pool.query(sql);
-    res.send(JSON.stringify(rows, null, 2));
-  } catch (err) {
-    console.error(err);
-    res.status(400).send("Erro SQL: " + err.message);
+    res.status(500).json({ erro: "Erro interno ao registrar indicação." });
   }
 });
 
+// ⚠️ CUIDADO: Admin SQL — só para uso controlado
+app.post("/admin/sql", async (req, res) => {
+  const { sql } = req.body;
+
+  // ❌ Adicione validação futura aqui para evitar SQL injection
+  try {
+    const { rows } = await pool.query(sql);
+    res.json(rows);
+  } catch (err) {
+    console.error("Erro SQL:", err);
+    res.status(400).send("Erro SQL: " + err.message);
+  }
+});
 
 app.listen(PORT, () => {
   console.log("✅ API de Check-in ativa na porta", PORT);
