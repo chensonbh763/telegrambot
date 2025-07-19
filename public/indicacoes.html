@@ -85,58 +85,49 @@
     <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
   </div>
 <script>
-  // Exemplo de ID para teste local (substituir pelo Telegram WebApp depois)
-const telegramID = 7299347622;
-const urlParams = new URLSearchParams(window.location.search);
-const referrerID = urlParams.get("start");
+  const telegramID = ${telegramID};
+  const referrerID = new URLSearchParams(window.location.search).get("start");
 
-// Preencher link de convite
-const convite = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
-document.getElementById("linkConvite").innerText = convite;
-document.getElementById("referrer").innerText = referrerID && referrerID !== telegramID.toString() ? `ID ${referrerID}` : "Ninguém";
+  const convite = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
+  document.getElementById("linkConvite").innerText = convite;
+  document.getElementById("referrer").innerText = referrerID ? `ID ${referrerID}` : "Ninguém";
 
-// Registrar indicação
-if (referrerID && referrerID !== telegramID.toString()) {
-  fetch("/api/indicacoes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      indicado: telegramID,
-      referrer: parseInt(referrerID)
-    })
-  })
+  // ✅ Registrar indicação no backend
+  if (referrerID && referrerID !== telegramID.toString()) {
+    fetch("/api/indicacoes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        indicado: telegramID,
+        referrer: parseInt(referrerID)
+      })
+    }).then(res => res.json())
+      .then(data => console.log(data.mensagem || data.erro));
+  }
+
+  // ✅ Consultar dados do usuário (quantos indicou e por quem foi indicado)
+  fetch(`/api/indicacoes/${telegramID}`)
     .then(res => res.json())
-    .then(data => console.log(data.mensagem || data.erro));
-}
+    .then(data => {
+      document.getElementById("indicados").innerText = data.totalIndicados || 0;
+      document.getElementById("pontos").innerText = data.pontos || 0;
+      document.getElementById("referrer").innerText = data.referrer ? `ID ${data.referrer}` : "Ninguém";
+    })
+    .catch(() => {
+      document.getElementById("indicados").innerText = "Erro";
+      document.getElementById("pontos").innerText = "Erro";
+    });
 
-// Consultar total de indicações
-fetch("/admin/sql", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    sql: `SELECT COUNT(*) FROM indicacoes WHERE referrer = ${telegramID}`
-  })
-})
-  .then(res => res.json())
-  .then(data => {
-    const total = data[0]?.count || 0;
-    document.getElementById("indicados").innerText = total;
-    document.getElementById("pontos").innerText = total;
-  })
-  .catch(() => {
-    document.getElementById("indicados").innerText = "Erro";
-    document.getElementById("pontos").innerText = "Erro";
-  });
+  function copiarConvite() {
+    navigator.clipboard.writeText(convite).then(() => {
+      alert("✅ Link copiado!");
+    });
+  }
 
-function copiarConvite() {
-  navigator.clipboard.writeText(convite).then(() => {
-    alert("✅ Link copiado para a área de transferência.");
-  });
-}
-
-function compartilharTelegram() {
-  window.open(`https://t.me/share/url?url=${encodeURIComponent(convite)}&text=Use o LucreMaisTask e ganhe recompensas!`, "_blank");
-}
+  function compartilharTelegram() {
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(convite)}&text=Ganhe recompensas com LucreMaisTask!`, "_blank");
+  }
 </script>
+
 </body>
 </html>
