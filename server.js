@@ -37,6 +37,18 @@ app.post("/api/checkin", async (req, res) => {
   }
 });
 
+app.post("/admin/sql", async (req, res) => {
+  const { sql } = req.body;
+  try {
+    const { rows } = await pool.query(sql);
+    res.send(JSON.stringify(rows, null, 2));
+  } catch (err) {
+    console.error(err);
+    res.status(400).send("Erro SQL: " + err.message);
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log("✅ API de Check-in ativa na porta", PORT);
 });
