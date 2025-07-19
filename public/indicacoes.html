@@ -43,12 +43,15 @@
     }
     .info {
       margin: 8px 0;
+      font-size: 15px;
+      line-height: 1.5;
     }
     .link-box {
       background: #e0ffe5;
       padding: 10px;
       border-radius: 6px;
       word-break: break-word;
+      font-size: 15px;
     }
     button {
       padding: 10px;
@@ -59,6 +62,7 @@
       border-radius: 4px;
       cursor: pointer;
       width: 100%;
+      font-size: 15px;
     }
     button:hover {
       background: #1e6e34;
@@ -75,13 +79,14 @@
   </nav>
 
   <div class="card">
-    <h2>👥 Minhas Indicações</h2>
+    <h2>📢 Convide e concorra!</h2>
 
-    <p class="info">🔗 <strong>Você foi indicado por:</strong> <span id="referrer">Carregando...</span></p>
-    <p class="info">📈 <strong>Indicações realizadas:</strong> <span id="indicados">0</span></p>
-    <p class="info">🏆 <strong>Pontos obtidos:</strong> <span id="pontos">0</span></p>
+    <p class="info">
+      Indique o bot <strong>LucreMaisTask</strong> para seus amigos e familiares. 
+      Cada novo usuário que entrar com seu link acumula pontos e te aproxima de prêmios incríveis no final do mês! 🎁
+    </p>
 
-    <h3>📢 Seu link de convite:</h3>
+    <h3>📎 Seu link de convite:</h3>
     <div class="link-box" id="linkConvite">Gerando...</div>
     <button onclick="copiarConvite()">📋 Copiar Link</button>
     <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
@@ -96,18 +101,6 @@
     } else {
       const link = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
       document.getElementById("linkConvite").innerText = link;
-
-      fetch(`/api/indicacoes/${telegramID}`)
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("referrer").innerText = data.referrer ? `ID ${data.referrer}` : "Ninguém";
-          document.getElementById("indicados").innerText = data.indicados || 0;
-          document.getElementById("pontos").innerText = data.pontos || 0;
-        })
-        .catch(err => {
-          console.error("Erro ao carregar dados:", err);
-          alert("⚠️ Erro ao buscar suas indicações.");
-        });
     }
 
     function copiarConvite() {
