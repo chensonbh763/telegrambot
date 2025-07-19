@@ -6,101 +6,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
   <style>
-    body { font-family: sans-serif; background: #f9f9f9; max-width: 600px; margin: auto; padding: 20px; }
-    .card { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
-    button {
-      width: 100%; padding: 10px; margin-top: 10px;
-      background: #2a8f43; color: white; border: none; border-radius: 4px;
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+      background: #f9f9f9;
     }
-    button:hover { background: #1e6e34; }
+    h2 { color: #2a8f43; }
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      width: 100%;
+      background: #2a8f43;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #226d35;
+    }
   </style>
 </head>
 <body>
 
-  <h2>✅ Minhas Tarefas</h2>
-  <div id="status">🔄 Carregando status...</div>
-  <div id="tarefas">🔄 Carregando tarefas...</div>
+<h2>✅ Minhas Tarefas</h2>
+<div id="status">🔄 Carregando status...</div>
+<div id="tarefas">🔄 Carregando tarefas...</div>
 
-  <script>
-    function getParam(param) {
-      const url = new URL(window.location.href);
-      return url.searchParams.get(param);
-    }
+<script>
+  function getParam(param) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(param);
+  }
 
-    const telegram_id = Telegram?.WebApp?.initDataUnsafe?.user?.id || getParam("id");
+  const telegram_id = getParam("id");
 
-    if (!telegram_id) {
-      document.getElementById("status").innerHTML = "❌ ID não encontrado.";
-    } else {
-      iniciar();
-    }
+  if (!telegram_id) {
+    document.getElementById("status").innerHTML = "❌ ID de usuário não encontrado.";
+    document.getElementById("tarefas").innerHTML = "";
+  } else {
+    carregarStatus();
+    carregarTarefas();
+  }
 
-    async function iniciar() {
-      await fetch("/api/atribuir_tarefas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegram_id })
-      });
-
-      carregarStatus();
-      carregarTarefas();
-    }
-
-    async function carregarStatus() {
-      const res = await fetch("/api/status/" + telegram_id);
-      const user = await res.json();
+  async function carregarStatus() {
+    try {
+      const res = await fetch(`/api/status/${telegram_id}`);
+      const dados = await res.json();
 
       document.getElementById("status").innerHTML = `
-        👤 <strong>${user.nome}</strong><br>
-        💰 Pontos: ${user.pontos} | ⭐ VIP: ${user.vip ? "Sim" : "Não"}<br>
-        👥 Indicações: ${user.indicacoes}<br><br>
+        👤 <strong>${dados.nome}</strong><br>
+        💰 Pontos: ${dados.pontos} | ⭐ VIP: ${dados.vip ? "Sim" : "Não"}<br>
+        👥 Indicações: ${dados.indicacoes}<br><br>
         <button onclick="compartilhar()">📣 Compartilhar link de indicação</button>
       `;
+    } catch (err) {
+      document.getElementById("status").innerHTML = "❌ Erro ao carregar status.";
     }
+  }
 
-    function compartilhar() {
-      const link = `https://t.me/LucreMaisTask_bot?start=${telegram_id}`;
-      navigator.clipboard.writeText(link);
-      alert("🔗 Link copiado!");
-    }
-
-    async function carregarTarefas() {
-      const res = await fetch("/api/tarefas/" + telegram_id);
+  async function carregarTarefas() {
+    try {
+      const res = await fetch(`/api/tarefas/${telegram_id}`);
       const tarefas = await res.json();
       const container = document.getElementById("tarefas");
       container.innerHTML = "";
 
-      if (!tarefas.length) {
-        container.innerHTML = "<p>🎉 Nenhuma tarefa hoje.</p>";
+      if (tarefas.length === 0) {
+        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível no momento.</p>";
         return;
       }
 
       tarefas.forEach(t => {
         const el = document.createElement("div");
-        el.className = "card";
-        el.innerHTML = `
-          <strong>${t.titulo}</strong><br>
-          Pontos: ${t.pontos}<br>
-          <button onclick="concluirTarefa(${t.tarefa_id}, '${t.link}')">📺 Assistir anúncio</button>
-        `;
-        container.appendChild(el);
-      });
-    }
-
-    function concluirTarefa(tarefa_id, link) {
-      show_9579151().then(() => {
-        fetch("/api/concluir", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegram_id, tarefa_id })
-        })
-        .then(() => {
-          window.open(link, "_blank");
-          carregarStatus();
-          carregarTarefas();
-        });
-      });
-    }
-  </script>
-</body>
-</html>
+        el.className = "card"
