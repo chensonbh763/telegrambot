@@ -6,9 +6,11 @@ const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const DOMAIN = process.env.DOMAIN || "https://web-production-10f9d.up.railway.app";
 
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // ✅ Rota principal
@@ -116,6 +118,40 @@ app.post("/api/concluir", async (req, res) => {
   }
 });
 
+
+// ✅ Telegram Bot via webhook
+const bot = new TelegramBot(process.env.BOT_TOKEN);
+bot.setWebHook(`${DOMAIN}/api/bot`);
+
+app.post("/api/bot", (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+bot.onText(/\/start/, async (msg) => {
+  const chatId = msg.chat.id;
+
+  // Registra o usuário e atribui tarefas
+  await fetch(`${DOMAIN}/api/status/${chatId}`); // Cria se não existir
+  await fetch(`${DOMAIN}/api/atribuir_tarefas`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegram_id: chatId }),
+  });
+
+  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!", {
+    reply_markup: {
+      inline_keyboard: [[
+        {
+          text: "📲 Acessar Mini App",
+          web_app: { url: `${DOMAIN}?id=${chatId}` }
+        }
+      ]]
+    }
+  });
+});
+
+// Inicia o servidor
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
