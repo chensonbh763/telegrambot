@@ -4,112 +4,44 @@
   <meta charset="UTF-8" />
   <title>Check-in Diário - LucreMais</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.jsdelivr.net/npm/@sonar-sdk/core/sonar-sdk.min.js"></script>
-
+  <script src="https://sdk.adsonar.io/js/latest.js"></script>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f2f2f2;
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
-      text-align: center;
-    }
-    h2 {
-      color: #2a8f43;
-    }
-    button {
-      background-color: #2a8f43;
-      color: white;
-      font-size: 18px;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    button:hover {
-      background-color: #247138;
-    }
-    #resultado {
-      margin-top: 30px;
-      font-size: 1.1rem;
-    }
-    #banner-container {
-      margin-top: 40px;
-    }
-    #meu_banner {
-      min-height: 90px; /* ou ajuste conforme seu formato */
-    }
+    body { font-family: sans-serif; text-align: center; padding: 30px; background: #f9f9f9; }
+    button { padding: 12px 24px; font-size: 1.1rem; background: #2a8f43; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    #mensagem { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <h2>🎉 Bem-vindo ao Check-in Diário!</h2>
-  <p>Clique no botão abaixo, assista ao anúncio e receba sua recompensa! 💰</p>
-
-  <button onclick="checkin()">📺 Fazer Check-in Diário</button>
-
-  <div id="resultado">⚡ Pronto para ganhar pontos!</div>
-
-  <!-- 🔸 Banner container -->
-  <div id="banner-container">
-    <h3 style="margin-top:40px;">📰 Ofertas e oportunidades</h3>
-    <div id="meu_banner"></div>
-  </div>
+  <h2>🎁 Check-in Diário</h2>
+  <p>Clique abaixo, assista ao anúncio e ganhe pontos!</p>
+  <button onclick="fazerCheckin()">📺 Fazer Check-in</button>
+  <div id="mensagem">...</div>
 
   <script>
-    // ✅ Check-in com anúncio recompensado
-    function checkin() {
-      document.getElementById("resultado").textContent = "⏳ Carregando anúncio...";
+    const telegram_id = new URLSearchParams(location.search).get("id") || "0000";
 
+    function fazerCheckin() {
       window.Sonar.show({
-        adUnit: "checkin_diario", // 🔁 substitua com sua Ad Unit de recompensa
-        loader: true,
-
-        onStart: () => {
-          console.log("🔄 Anúncio recompensado iniciando...");
-        },
-        onShow: () => {
-          console.log("👁️ Anúncio recompensado exibido");
-        },
-        onError: () => {
-          document.getElementById("resultado").textContent = "❌ Não foi possível exibir o anúncio.";
-        },
-        onClose: () => {
-          console.log("🔒 Anúncio recompensado fechado");
-        },
+        adUnit: 'checkin_diario',
         onReward: () => {
-          document.getElementById("resultado").textContent = "✅ Check-in feito! Você ganhou +1 ponto 🎉";
-        }
-
-      }).then((result) => {
-        console.log("Resultado do anúncio:", result.status);
+          fetch("/api/checkin", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ telegram_id })
+          })
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("mensagem").innerText = data.mensagem;
+          })
+          .catch(() => {
+            document.getElementById("mensagem").innerText = "❌ Erro ao registrar pontos.";
+          });
+        },
+        onError: () => alert("❌ Erro ao carregar anúncio."),
+        onClose: () => console.log("Anúncio fechado")
       });
     }
-
-    // ✅ Banner fixo na página
-    function showBannerAd() {
-      window.Sonar.show({
-        adUnit: "meu_banner", // 🔁 substitua com o nome da sua Ad Unit de BANNER
-        containerId: "meu_banner", // ID do <div> onde o banner será renderizado
-
-        onStart: () => console.log("🟡 Banner carregando..."),
-        onShow: () => console.log("🟢 Banner exibido com sucesso."),
-        onError: () => console.warn("❌ Erro ao exibir banner."),
-        onClose: () => console.log("🔒 Banner fechado."),
-        onRefresh: (status) => console.log(`🔄 Banner atualizado: ${status}`)
-      }).then((result) => {
-        if (result.status === "error") {
-          console.error("⚠️ Falha ao mostrar o banner.");
-        } else {
-          console.log("📢 Banner ativo.");
-        }
-      });
-    }
-
-    // Executa ao carregar a página
-    window.onload = showBannerAd;
   </script>
 
 </body>
