@@ -2,90 +2,95 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>LucreMaisTask</title>
+  <title>Check-in Diário - LucreMais</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
+  <script src="https://cdn.adsonar.vn/sdk/sdk.js"></script> <!-- SDK oficial do AdSonar -->
+
   <style>
     body {
       font-family: sans-serif;
-      max-width: 600px;
+      text-align: center;
+      padding: 40px 20px;
+      background: #f0f8f0;
+      max-width: 500px;
       margin: auto;
-      padding: 20px;
-      background: #f9f9f9;
     }
-    h2 { color: #2a8f43; }
-    .card {
-      background: white;
-      padding: 15px;
-      margin: 15px 0;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+
+    h2 {
+      color: #2a8f43;
     }
+
     button {
-      padding: 10px;
-      margin-top: 10px;
-      width: 100%;
-      background: #2a8f43;
+      padding: 14px 22px;
+      font-size: 1.1rem;
+      background-color: #2a8f43;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      margin-top: 20px;
     }
-    button:hover {
-      background: #226d35;
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 1rem;
     }
   </style>
 </head>
 <body>
 
-<h2>✅ Minhas Tarefas</h2>
-<div id="status">🔄 Carregando status...</div>
-<div id="tarefas">🔄 Carregando tarefas...</div>
+  <h2>🎁 Check-in Diário</h2>
+  <p>Hoje é <strong id="dataHoje"></strong></p>
 
-<script>
-  function getParam(param) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(param);
-  }
+  <button id="checkinBtn" onclick="fazerCheckin()">Fazer Check-in</button>
 
-  const telegram_id = getParam("id");
+  <div id="status">⏳ Aguardando ação...</div>
 
-  if (!telegram_id) {
-    document.getElementById("status").innerHTML = "❌ ID de usuário não encontrado.";
-    document.getElementById("tarefas").innerHTML = "";
-  } else {
-    carregarStatus();
-    carregarTarefas();
-  }
+  <script>
+    const hoje = new Date().toISOString().split("T")[0];
+    const status = document.getElementById("status");
+    const btn = document.getElementById("checkinBtn");
+    const dataEl = document.getElementById("dataHoje");
+    dataEl.textContent = hoje;
 
-  async function carregarStatus() {
-    try {
-      const res = await fetch(`/api/status/${telegram_id}`);
-      const dados = await res.json();
+    const chaveCheckin = "checkin_" + hoje;
 
-      document.getElementById("status").innerHTML = `
-        👤 <strong>${dados.nome}</strong><br>
-        💰 Pontos: ${dados.pontos} | ⭐ VIP: ${dados.vip ? "Sim" : "Não"}<br>
-        👥 Indicações: ${dados.indicacoes}<br><br>
-        <button onclick="compartilhar()">📣 Compartilhar link de indicação</button>
-      `;
-    } catch (err) {
-      document.getElementById("status").innerHTML = "❌ Erro ao carregar status.";
+    if (localStorage.getItem(chaveCheckin)) {
+      btn.disabled = true;
+      status.textContent = "✅ Você já fez o check-in hoje!";
     }
-  }
 
-  async function carregarTarefas() {
-    try {
-      const res = await fetch(`/api/tarefas/${telegram_id}`);
-      const tarefas = await res.json();
-      const container = document.getElementById("tarefas");
-      container.innerHTML = "";
+    function fazerCheckin() {
+      status.textContent = "🔄 Carregando anúncio...";
+      
+      window.Sonar.show({
+        adUnit: "SEU_AD_UNIT", // ← Troque aqui
+        loader: true,
 
-      if (tarefas.length === 0) {
-        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível no momento.</p>";
-        return;
-      }
+        onReward: () => {
+          localStorage.setItem(chaveCheckin, "feito");
+          status.textContent = "🎉 Parabéns! Você fez seu check-in e ganhou uma recompensa!";
+          btn.disabled = true;
+        },
 
-      tarefas.forEach(t => {
-        const el = document.createElement("div");
-        el.className = "card"
+        onError: () => {
+          status.textContent = "❌ Erro ao carregar o anúncio.";
+        },
+
+        onClose: () => {
+          console.log("🟡 O anúncio foi fechado.");
+        }
+      }).then((result) => {
+        if (result.status === "error") {
+          console.error("Erro:", result.message);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
