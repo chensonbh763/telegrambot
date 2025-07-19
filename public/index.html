@@ -4,93 +4,84 @@
   <meta charset="UTF-8" />
   <title>Check-in Diário - LucreMais</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.adsonar.vn/sdk/sdk.js"></script> <!-- SDK oficial do AdSonar -->
+  <script src="https://cdn.jsdelivr.net/npm/@sonar-sdk/core/sonar-sdk.min.js"></script>
 
   <style>
     body {
       font-family: sans-serif;
-      text-align: center;
-      padding: 40px 20px;
-      background: #f0f8f0;
+      background: #f2f2f2;
+      padding: 20px;
       max-width: 500px;
       margin: auto;
+      text-align: center;
     }
-
     h2 {
       color: #2a8f43;
     }
-
     button {
-      padding: 14px 22px;
-      font-size: 1.1rem;
       background-color: #2a8f43;
       color: white;
+      font-size: 18px;
+      padding: 12px 24px;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       margin-top: 20px;
     }
-
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    button:hover {
+      background-color: #247138;
     }
-
-    #status {
-      margin-top: 20px;
-      font-size: 1rem;
+    #resultado {
+      margin-top: 30px;
+      font-size: 1.1rem;
     }
   </style>
 </head>
 <body>
 
-  <h2>🎁 Check-in Diário</h2>
-  <p>Hoje é <strong id="dataHoje"></strong></p>
+  <h2>🎉 Bem-vindo ao Check-in Diário!</h2>
+  <p>Clique no botão abaixo, assista ao anúncio e receba sua recompensa! 💰</p>
 
-  <button id="checkinBtn" onclick="fazerCheckin()">Fazer Check-in</button>
+  <button onclick="checkin()">📺 Fazer Check-in Diário</button>
 
-  <div id="status">⏳ Aguardando ação...</div>
+  <div id="resultado">⚡ Pronto para ganhar pontos!</div>
 
   <script>
-    const hoje = new Date().toISOString().split("T")[0];
-    const status = document.getElementById("status");
-    const btn = document.getElementById("checkinBtn");
-    const dataEl = document.getElementById("dataHoje");
-    dataEl.textContent = hoje;
+    function checkin() {
+      document.getElementById("resultado").textContent = "⏳ Carregando anúncio...";
 
-    const chaveCheckin = "checkin_" + hoje;
-
-    if (localStorage.getItem(chaveCheckin)) {
-      btn.disabled = true;
-      status.textContent = "✅ Você já fez o check-in hoje!";
-    }
-
-    function fazerCheckin() {
-      status.textContent = "🔄 Carregando anúncio...";
-      
       window.Sonar.show({
-        adUnit: "SEU_AD_UNIT", // ← Troque aqui
+        adUnit: "checkin_diario", // Nome da sua Ad Unit na AdSonar
         loader: true,
 
-        onReward: () => {
-          localStorage.setItem(chaveCheckin, "feito");
-          status.textContent = "🎉 Parabéns! Você fez seu check-in e ganhou uma recompensa!";
-          btn.disabled = true;
+        onStart: () => {
+          console.log("🔄 Anúncio iniciando...");
+        },
+
+        onShow: () => {
+          console.log("👁️ Anúncio exibido");
         },
 
         onError: () => {
-          status.textContent = "❌ Erro ao carregar o anúncio.";
+          console.log("❌ Erro ao exibir o anúncio");
+          document.getElementById("resultado").textContent = "❌ Não foi possível carregar o anúncio.";
         },
 
         onClose: () => {
-          console.log("🟡 O anúncio foi fechado.");
+          console.log("🔒 Anúncio fechado");
+        },
+
+        onReward: () => {
+          console.log("🎁 Recompensa liberada!");
+          document.getElementById("resultado").textContent = "✅ Check-in feito com sucesso! Você ganhou +1 ponto 🎉";
+          // Aqui você pode chamar uma API ou atualizar o banco de dados se quiser
         }
+
       }).then((result) => {
-        if (result.status === "error") {
-          console.error("Erro:", result.message);
-        }
+        console.log("📡 Resultado do anúncio:", result.status);
       });
     }
   </script>
+
 </body>
 </html>
