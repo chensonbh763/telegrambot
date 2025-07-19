@@ -11,12 +11,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// 🔸 Rota principal
 app.get("/", (req, res) => {
   res.send("🚀 API LucreMaisTask está no ar!");
 });
 
-// 🔸 Listar tarefas ativas
 app.get("/api/tarefas", async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -29,7 +27,6 @@ app.get("/api/tarefas", async (req, res) => {
   }
 });
 
-// 🔸 Criar tarefa pelo admin
 app.post("/admin/tarefa", async (req, res) => {
   const { titulo, link, dia, pontos } = req.body;
   try {
@@ -39,34 +36,31 @@ app.post("/admin/tarefa", async (req, res) => {
     );
     res.send("✅ Tarefa criada com sucesso!");
   } catch (err) {
-    console.error(err);
+    console.error("Erro ao criar tarefa:", err.message);
     res.status(500).send("Erro ao criar tarefa.");
   }
 });
 
-// 🔸 Executar SQL manual
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
     const { rows } = await pool.query(sql);
     res.send(JSON.stringify(rows, null, 2));
   } catch (err) {
-    console.error(err);
+    console.error("Erro SQL:", err.message);
     res.status(400).send("Erro SQL: " + err.message);
   }
 });
 
-// 🔹 Registrar indicação via Telegram link
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
   const indicadoId = msg.from.id;
-  const indicadorId = match[1]; // ID de quem indicou, via link ?start=ID
+  const indicadorId = match[1]; // ID via parâmetro ?start=ID
 
   if (indicadorId && indicadorId !== indicadoId.toString()) {
     try {
-      // Verifica se já existe a indicação
       const check = await pool.query(
         "SELECT * FROM indicacoes WHERE id_indicado = $1",
         [indicadoId]
@@ -82,8 +76,8 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
         bot.sendMessage(chatId, "ℹ️ Você já foi indicado anteriormente.");
       }
     } catch (err) {
-      console.error("Erro ao registrar indicação:", err);
-      bot.sendMessage(chatId, "⚠️ Erro ao registrar sua indicação.");
+      console.error("❌ Erro ao registrar indicação:", err.message);
+      bot.sendMessage(chatId, `⚠️ Erro ao registrar sua indicação: ${err.message}`);
     }
   }
 
@@ -92,7 +86,7 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       inline_keyboard: [[
         {
           text: "📲 Acessar Mini App",
-          web_app: { url: "https://web-production-10f9d.up.railway.app/index.html" }
+          web_app: { url: "https://web-production-10f9d.up.railway.app/indicacoes.html" }
         }
       ]]
     }
