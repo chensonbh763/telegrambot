@@ -11,12 +11,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// ✅ Rota principal para checagem
+// 🔸 Rota principal
 app.get("/", (req, res) => {
   res.send("🚀 API LucreMaisTask está no ar!");
 });
 
-// 🔹 Listar tarefas ativas
+// 🔸 Listar tarefas ativas
 app.get("/api/tarefas", async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -29,7 +29,7 @@ app.get("/api/tarefas", async (req, res) => {
   }
 });
 
-// 🔹 Criar nova tarefa (via painel admin)
+// 🔸 Criar tarefa pelo admin
 app.post("/admin/tarefa", async (req, res) => {
   const { titulo, link, dia, pontos } = req.body;
   try {
@@ -44,7 +44,7 @@ app.post("/admin/tarefa", async (req, res) => {
   }
 });
 
-// 🔹 Executar comandos SQL manuais (via painel admin)
+// 🔸 Executar SQL manual
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
@@ -56,18 +56,43 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-// 🔹 Telegram Bot
+// 🔹 Registrar indicação via Telegram link
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
+  const indicadoId = msg.from.id;
+  const indicadorId = match[1]; // ID de quem indicou, via link ?start=ID
 
-  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia e começar a lucrar. 💸", {
+  if (indicadorId && indicadorId !== indicadoId.toString()) {
+    try {
+      // Verifica se já existe a indicação
+      const check = await pool.query(
+        "SELECT * FROM indicacoes WHERE id_indicado = $1",
+        [indicadoId]
+      );
+
+      if (check.rows.length === 0) {
+        await pool.query(
+          "INSERT INTO indicacoes (id_indicador, id_indicado, data) VALUES ($1, $2, NOW())",
+          [indicadorId, indicadoId]
+        );
+        bot.sendMessage(chatId, "🎉 Indicação registrada com sucesso!");
+      } else {
+        bot.sendMessage(chatId, "ℹ️ Você já foi indicado anteriormente.");
+      }
+    } catch (err) {
+      console.error("Erro ao registrar indicação:", err);
+      bot.sendMessage(chatId, "⚠️ Erro ao registrar sua indicação.");
+    }
+  }
+
+  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia. 💸", {
     reply_markup: {
       inline_keyboard: [[
         {
           text: "📲 Acessar Mini App",
-          web_app: { url: "https://web-production-10f9d.up.railway.app" }
+          web_app: { url: "https://web-production-10f9d.up.railway.app/index.html" }
         }
       ]]
     }
