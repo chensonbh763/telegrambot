@@ -47,7 +47,7 @@
       background: #e0ffe5;
       padding: 10px;
       border-radius: 6px;
-      word-break: break-word;
+      word-break: break-all;
     }
     button {
       padding: 10px;
@@ -65,6 +65,7 @@
   </style>
 </head>
 <body>
+  <!-- MENU SUPERIOR -->
   <nav class="top-menu">
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
@@ -75,59 +76,41 @@
   <div class="card">
     <h2>👥 Minhas Indicações</h2>
 
-    <p class="info">🔗 <strong>Você foi indicado por:</strong> <span id="referrer">...</span></p>
-    <p class="info">📈 <strong>Indicações realizadas:</strong> <span id="indicados">...</span></p>
-    <p class="info">🏆 <strong>Pontos obtidos:</strong> <span id="pontos">...</span></p>
+    <p class="info">🔗 <strong>Você foi indicado por:</strong> <span id="referrer">Ninguém</span></p>
+    <p class="info">📈 <strong>Indicações realizadas:</strong> <span id="indicados">0</span></p>
+    <p class="info">🏆 <strong>Pontos obtidos:</strong> <span id="pontos">0</span></p>
 
     <h3>📢 Seu link de convite:</h3>
     <div class="link-box" id="linkConvite">...</div>
     <button onclick="copiarConvite()">📋 Copiar Link</button>
     <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
   </div>
-<script>
-  const telegramID = ${telegramID};
-  const referrerID = new URLSearchParams(window.location.search).get("start");
 
-  const convite = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
-  document.getElementById("linkConvite").innerText = convite;
-  document.getElementById("referrer").innerText = referrerID ? `ID ${referrerID}` : "Ninguém";
+  <script>
+    // Simulação de dados do usuário (substituir depois com backend/Telegram WebApp)
+    const telegramID = 7299347622;
+    const referrerID = 1029384756; // Simulado como ID de quem indicou
 
-  // ✅ Registrar indicação no backend
-  if (referrerID && referrerID !== telegramID.toString()) {
-    fetch("/api/indicacoes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        indicado: telegramID,
-        referrer: parseInt(referrerID)
-      })
-    }).then(res => res.json())
-      .then(data => console.log(data.mensagem || data.erro));
-  }
+    // Atualiza dados visuais
+    document.getElementById("referrer").innerText = referrerID ? `ID ${referrerID}` : "Ninguém";
+    document.getElementById("indicados").innerText = 3; // Simular contagem
+    document.getElementById("pontos").innerText = 3;     // 1 ponto por indicação
 
-  // ✅ Consultar dados do usuário (quantos indicou e por quem foi indicado)
-  fetch(`/api/indicacoes/${telegramID}`)
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("indicados").innerText = data.totalIndicados || 0;
-      document.getElementById("pontos").innerText = data.pontos || 0;
-      document.getElementById("referrer").innerText = data.referrer ? `ID ${data.referrer}` : "Ninguém";
-    })
-    .catch(() => {
-      document.getElementById("indicados").innerText = "Erro";
-      document.getElementById("pontos").innerText = "Erro";
-    });
+    // Link personalizado
+    const link = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
+    document.getElementById("linkConvite").innerText = link;
 
-  function copiarConvite() {
-    navigator.clipboard.writeText(convite).then(() => {
-      alert("✅ Link copiado!");
-    });
-  }
+    // Função copiar link
+    const copiarConvite = () => {
+      navigator.clipboard.writeText(link).then(() => {
+        alert("✅ Link copiado para sua área de transferência.");
+      });
+    };
 
-  function compartilharTelegram() {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(convite)}&text=Ganhe recompensas com LucreMaisTask!`, "_blank");
-  }
-</script>
-
+    // Função compartilhar via Telegram
+    const compartilharTelegram = () => {
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Use o LucreMaisTask e ganhe recompensas!`, "_blank");
+    };
+  </script>
 </body>
 </html>
