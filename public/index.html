@@ -35,6 +35,12 @@
       margin-top: 30px;
       font-size: 1.1rem;
     }
+    #banner-container {
+      margin-top: 40px;
+    }
+    #meu_banner {
+      min-height: 90px; /* ou ajuste conforme seu formato */
+    }
   </style>
 </head>
 <body>
@@ -46,41 +52,64 @@
 
   <div id="resultado">⚡ Pronto para ganhar pontos!</div>
 
+  <!-- 🔸 Banner container -->
+  <div id="banner-container">
+    <h3 style="margin-top:40px;">📰 Ofertas e oportunidades</h3>
+    <div id="meu_banner"></div>
+  </div>
+
   <script>
+    // ✅ Check-in com anúncio recompensado
     function checkin() {
       document.getElementById("resultado").textContent = "⏳ Carregando anúncio...";
 
       window.Sonar.show({
-        adUnit: "checkin_diario", // Nome da sua Ad Unit na AdSonar
+        adUnit: "checkin_diario", // 🔁 substitua com sua Ad Unit de recompensa
         loader: true,
 
         onStart: () => {
-          console.log("🔄 Anúncio iniciando...");
+          console.log("🔄 Anúncio recompensado iniciando...");
         },
-
         onShow: () => {
-          console.log("👁️ Anúncio exibido");
+          console.log("👁️ Anúncio recompensado exibido");
         },
-
         onError: () => {
-          console.log("❌ Erro ao exibir o anúncio");
-          document.getElementById("resultado").textContent = "❌ Não foi possível carregar o anúncio.";
+          document.getElementById("resultado").textContent = "❌ Não foi possível exibir o anúncio.";
         },
-
         onClose: () => {
-          console.log("🔒 Anúncio fechado");
+          console.log("🔒 Anúncio recompensado fechado");
         },
-
         onReward: () => {
-          console.log("🎁 Recompensa liberada!");
-          document.getElementById("resultado").textContent = "✅ Check-in feito com sucesso! Você ganhou +1 ponto 🎉";
-          // Aqui você pode chamar uma API ou atualizar o banco de dados se quiser
+          document.getElementById("resultado").textContent = "✅ Check-in feito! Você ganhou +1 ponto 🎉";
         }
 
       }).then((result) => {
-        console.log("📡 Resultado do anúncio:", result.status);
+        console.log("Resultado do anúncio:", result.status);
       });
     }
+
+    // ✅ Banner fixo na página
+    function showBannerAd() {
+      window.Sonar.show({
+        adUnit: "meu_banner", // 🔁 substitua com o nome da sua Ad Unit de BANNER
+        containerId: "meu_banner", // ID do <div> onde o banner será renderizado
+
+        onStart: () => console.log("🟡 Banner carregando..."),
+        onShow: () => console.log("🟢 Banner exibido com sucesso."),
+        onError: () => console.warn("❌ Erro ao exibir banner."),
+        onClose: () => console.log("🔒 Banner fechado."),
+        onRefresh: (status) => console.log(`🔄 Banner atualizado: ${status}`)
+      }).then((result) => {
+        if (result.status === "error") {
+          console.error("⚠️ Falha ao mostrar o banner.");
+        } else {
+          console.log("📢 Banner ativo.");
+        }
+      });
+    }
+
+    // Executa ao carregar a página
+    window.onload = showBannerAd;
   </script>
 
 </body>
