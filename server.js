@@ -92,33 +92,33 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
     }
   });
 });
+
 app.get("/api/ranking", async (req, res) => {
   try {
-    const tarefas = await pool.query(`
-      SELECT telegram_id, SUM(pontos) AS pontos
-      FROM tarefas
-      GROUP BY telegram_id
+    const rankingPontos = await pool.query(`
+      SELECT telegram_id, nome, pontos
+      FROM usuarios
       ORDER BY pontos DESC
       LIMIT 5
     `);
 
-    const indicacoes = await pool.query(`
-      SELECT id_indicador, COUNT(*) AS total
-      FROM indicacoes
-      GROUP BY id_indicador
-      ORDER BY total DESC
+    const rankingIndicacoes = await pool.query(`
+      SELECT telegram_id, nome, indicacoes
+      FROM usuarios
+      ORDER BY indicacoes DESC
       LIMIT 5
     `);
 
     res.json({
-      tarefas: tarefas.rows,
-      indicacoes: indicacoes.rows
+      tarefas: rankingPontos.rows,
+      indicacoes: rankingIndicacoes.rows
     });
   } catch (err) {
     console.error("Erro ao buscar ranking:", err.message);
     res.status(500).json({ erro: "Erro ao buscar ranking" });
   }
 });
+
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
