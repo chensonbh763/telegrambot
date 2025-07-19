@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Indicações</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -47,7 +48,7 @@
       background: #e0ffe5;
       padding: 10px;
       border-radius: 6px;
-      word-break: break-all;
+      word-break: break-word;
     }
     button {
       padding: 10px;
@@ -76,41 +77,51 @@
   <div class="card">
     <h2>👥 Minhas Indicações</h2>
 
-    <p class="info">🔗 <strong>Você foi indicado por:</strong> <span id="referrer">Ninguém</span></p>
+    <p class="info">🔗 <strong>Você foi indicado por:</strong> <span id="referrer">Carregando...</span></p>
     <p class="info">📈 <strong>Indicações realizadas:</strong> <span id="indicados">0</span></p>
     <p class="info">🏆 <strong>Pontos obtidos:</strong> <span id="pontos">0</span></p>
 
     <h3>📢 Seu link de convite:</h3>
-    <div class="link-box" id="linkConvite">...</div>
+    <div class="link-box" id="linkConvite">Gerando...</div>
     <button onclick="copiarConvite()">📋 Copiar Link</button>
     <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
   </div>
 
   <script>
-    // Simulação de dados do usuário (substituir depois com backend/Telegram WebApp)
-    const telegramID = 7299347622;
-    const referrerID = 1029384756; // Simulado como ID de quem indicou
+    const tg = window.Telegram.WebApp;
+    const telegramID = tg.initDataUnsafe?.user?.id;
 
-    // Atualiza dados visuais
-    document.getElementById("referrer").innerText = referrerID ? `ID ${referrerID}` : "Ninguém";
-    document.getElementById("indicados").innerText = 3; // Simular contagem
-    document.getElementById("pontos").innerText = 3;     // 1 ponto por indicação
+    if (!telegramID) {
+      alert("❌ Não foi possível identificar seu ID do Telegram.");
+    } else {
+      const link = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
+      document.getElementById("linkConvite").innerText = link;
 
-    // Link personalizado
-    const link = `https://t.me/LucreMaisTask_bot?start=${telegramID}`;
-    document.getElementById("linkConvite").innerText = link;
+      fetch(`/api/indicacoes/${telegramID}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("referrer").innerText = data.referrer ? `ID ${data.referrer}` : "Ninguém";
+          document.getElementById("indicados").innerText = data.indicados || 0;
+          document.getElementById("pontos").innerText = data.pontos || 0;
+        })
+        .catch(err => {
+          console.error("Erro ao carregar dados:", err);
+          alert("⚠️ Erro ao buscar suas indicações.");
+        });
+    }
 
-    // Função copiar link
-    const copiarConvite = () => {
+    function copiarConvite() {
+      const link = document.getElementById("linkConvite").innerText;
       navigator.clipboard.writeText(link).then(() => {
         alert("✅ Link copiado para sua área de transferência.");
       });
-    };
+    }
 
-    // Função compartilhar via Telegram
-    const compartilharTelegram = () => {
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=Use o LucreMaisTask e ganhe recompensas!`, "_blank");
-    };
+    function compartilharTelegram() {
+      const link = document.getElementById("linkConvite").innerText;
+      const texto = "Use o LucreMaisTask e ganhe recompensas!";
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(texto)}`, "_blank");
+    }
   </script>
 </body>
 </html>
