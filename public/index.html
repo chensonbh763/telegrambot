@@ -2,47 +2,93 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Check-in Diário - LucreMais</title>
+  <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://sdk.adsonar.io/js/latest.js"></script>
+  <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 30px; background: #f9f9f9; }
-    button { padding: 12px 24px; font-size: 1.1rem; background: #2a8f43; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    #mensagem { margin-top: 20px; font-weight: bold; }
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      max-width: 600px;
+      margin: auto;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background: #2a8f43;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1e6e34;
+    }
+    .vip-box {
+      background: #e0ffe5;
+      border: 1px solid #2a8f43;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
 
-  <h2>🎁 Check-in Diário</h2>
-  <p>Clique abaixo, assista ao anúncio e ganhe pontos!</p>
-  <button onclick="fazerCheckin()">📺 Fazer Check-in</button>
-  <div id="mensagem">...</div>
+  <h2>✅ Check-in Diário</h2>
+  <div class="card">
+    <p>Faça seu check-in diário e ganhe pontos!</p>
+    <button onclick="checkin()">📺 Ver anúncio e ganhar pontos</button>
+  </div>
+
+  <div class="vip-box">
+    <strong>🎯 Torne-se VIP!</strong><br>
+    Ganhe <b>% da pontuação</b> de todos que você indicar.<br>
+    <button onclick="window.open('https://www.mfuture.com.br/lucremais/prevenda.html', '_blank')">
+      🚀 Quero ser VIP
+    </button>
+  </div>
+
+  <!-- Banner AdSonar -->
+  <div id="checkin_banner"></div>
 
   <script>
-    const telegram_id = new URLSearchParams(location.search).get("id") || "0000";
-
-    function fazerCheckin() {
+    // Função para mostrar anúncio recompensado
+    const checkin = () => {
       window.Sonar.show({
         adUnit: 'checkin_diario',
+        loader: true,
+        onStart: () => console.log("Carregando anúncio..."),
         onReward: () => {
-          fetch("/api/checkin", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ telegram_id })
-          })
-          .then(res => res.json())
-          .then(data => {
-            document.getElementById("mensagem").innerText = data.mensagem;
-          })
-          .catch(() => {
-            document.getElementById("mensagem").innerText = "❌ Erro ao registrar pontos.";
-          });
+          alert("✅ Você ganhou seus pontos de check-in!");
+          // Aqui você pode integrar com seu backend futuramente
         },
         onError: () => alert("❌ Erro ao carregar anúncio."),
-        onClose: () => console.log("Anúncio fechado")
+        onClose: () => console.log("Anúncio fechado.")
       });
-    }
-  </script>
+    };
 
+    // Banner fixo
+    const showBannerAd = () => {
+      window.Sonar.show({
+        adUnit: 'checkin_banner',
+        onShow: () => console.log("📢 Banner exibido com sucesso."),
+        onError: () => console.warn("❌ Erro ao carregar banner."),
+        onRefresh: (status) => console.log("🔄 Banner atualizado:", status)
+      });
+    };
+
+    // Inicia banner após carregar
+    setTimeout(showBannerAd, 1000);
+  </script>
 </body>
 </html>
