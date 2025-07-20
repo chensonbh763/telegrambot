@@ -87,13 +87,13 @@
         const tarefasList = document.getElementById("rankingTarefas");
         tarefasList.innerHTML = "";
         tarefas.forEach((item, index) => {
-          tarefasList.innerHTML += `<li>${index + 1}. ID ${item.telegram_id} — ${item.pontos} pontos</li>`;
+          tarefasList.innerHTML += `<li>${index + 1}. ${item.nome || 'Usuário'} (ID ${item.telegram_id}) — ${item.pontos} pontos</li>`;
         });
 
         const indicacoesList = document.getElementById("rankingIndicacoes");
         indicacoesList.innerHTML = "";
         indicacoes.forEach((item, index) => {
-          indicacoesList.innerHTML += `<li>${index + 1}. ID ${item.id_indicador} — ${item.total} indicações</li>`;
+          indicacoesList.innerHTML += `<li>${index + 1}. ${item.nome || 'Usuário'} (ID ${item.telegram_id}) — ${item.indicacoes} indicações</li>`;
         });
       })
       .catch(err => {
