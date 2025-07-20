@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>Painel Admin - LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
+  <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script> <!-- SDK Monetag -->
   <style>
     body {
       font-family: sans-serif;
@@ -60,6 +63,84 @@
     <button onclick="executarSQL()">Executar</button>
     <pre id="respostaSQL">Nenhum resultado ainda.</pre>
   </section>
+<!-- 🪙 Anúncio Adsterra -->
+  <div class="ads-box">
+    <p><strong>🔰 Patrocínio</strong><br>Quer sua marca aqui? Clique em anunciar</p>
+    <a href="https://www.mfuture.com.br/lucremais/anuncie.html?utm_source=telegram&utm_medium=site&utm_campaign=botTask&utm_content=anunciar" target="_blank" rel="noopener noreferrer">
+      <button>📢 Anunciar agora</button>
+    </a>
+    <script type="text/javascript">
+      atOptions = {
+        'key' : 'f2047e9078f37ab78ad873ab52c5949e',
+        'format' : 'iframe',
+        'height' : 250,
+        'width' : 300,
+        'params' : {}
+      };
+    </script>
+    <script type="text/javascript" src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
+  </div>
+<!-- 🟩 Container visual para o banner -->
+<div class="banner-box">
+  <h3>📢 Publicidade</h3>
+  <div id="meu_banner"></div>
+</div>
+
+<!-- Estilo do bloco -->
+<style>
+  .banner-box {
+    background: white;
+    border-radius: 8px;
+    margin: 20px 0;
+    padding: 15px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .banner-box h3 {
+    margin-bottom: 10px;
+    color: #2a8f43;
+  }
+</style>
+
+<!-- SDK do AdSonar -->
+<script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
+
+<!-- Chamada para exibir o banner -->
+<script>
+  window.Sonar.show({ adUnit: "meu_banner" });
+</script>
+  <script>
+    const checkin = () => {
+      window.Sonar.show({
+        adUnit: 'checkin_diario',
+        loader: true,
+        onStart: () => console.log("Carregando anúncio..."),
+        onReward: () => {
+          alert("✅ Você ganhou seus pontos de check-in!");
+        },
+        onError: () => alert("❌ Erro ao carregar anúncio."),
+        onClose: () => console.log("Anúncio fechado.")
+      });
+    };
+
+    const showBannerAd = () => {
+      window.Sonar.show({
+        adUnit: 'checkin_banner',
+        onShow: () => console.log("📢 Banner exibido com sucesso."),
+        onError: () => console.warn("❌ Erro ao carregar banner."),
+        onRefresh: (status) => console.log("🔄 Banner atualizado:", status)
+      });
+    };
+    setTimeout(showBannerAd, 1000);
+
+    const shareReward = () => {
+      show_9579151().then(() => {
+        alert("✅ Tarefa realizada com sucesso!");
+      }).catch(() => {
+        alert("❌ Ocorreu um erro ao exibir o anúncio.");
+      });
+    };
+  </script>
 
 <script>
   async function testarConexao() {
