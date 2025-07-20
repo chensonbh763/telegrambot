@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.adsonar.io/sdk.js"></script>
-  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
+  <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script> <!-- SDK Monetag -->
   <style>
     body {
       font-family: sans-serif;
@@ -61,6 +61,7 @@
       padding: 15px;
       margin: 20px 0;
       border-radius: 6px;
+      text-align: center;
     }
     .ads-box {
       background: white;
@@ -90,27 +91,25 @@
   </div>
 
   <div class="card">
-    <h3>📢 Compartilhe e Ganhe!</h3>
-    <p>Convide amigos para usar o <strong>LucreMaisTask_bot</strong>:</p>
-    <ol>
-      <li>Compartilhe o link <a href="https://t.me/LucreMaisTask_bot" target="_blank">t.me/LucreMaisTask_bot</a> em grupos ou com amigos.</li>
-      <li>Clique no botão abaixo após compartilhar.</li>
-      <li>Assista ao anúncio e receba seus pontos!</li>
-    </ol>
-    <button onclick="shareReward()">🔗 Compartilhei! Quero meus pontos</button>
+    <h3>📢 Missão do dia!</h3>
+    <p>- 🎯 Cada anúncio vale pontos! Assista e chegue mais perto do topo.</p>
+    <button onclick="shareReward()">🔗 Realizar tarefa do dia</button>
   </div>
 
   <div class="vip-box">
     <strong>🎯 Torne-se VIP!</strong><br>
-    Ganhe <b>% da pontuação</b> de todos que usam esse bot de tarefas.<br>
-    <button onclick="window.open('https://www.mfuture.com.br/lucremais/prevenda.html', '_blank')">
-      🚀 Quero ser VIP
-    </button>
+    Ganhe <b>% da pontuação</b> de todos que usam esse bot de tarefas.<br><br>
+    <a href="https://www.mfuture.com.br/lucremais/prevenda.html?utm_source=telegram&utm_medium=site&utm_campaign=botTask&utm_content=sejavip" target="_blank" rel="noopener noreferrer">
+      <button>🚀 Quero ser VIP</button>
+    </a>
   </div>
 
   <!-- 🪙 Anúncio Adsterra -->
   <div class="ads-box">
-    <p><strong>🔰 Patrocínio</strong><br>Visite nossos parceiros e acumule recompensas:</p>
+    <p><strong>🔰 Patrocínio</strong><br>Quer sua marca aqui? Clique em anunciar</p>
+    <a href="https://www.mfuture.com.br/lucremais/anuncie.html?utm_source=telegram&utm_medium=site&utm_campaign=botTask&utm_content=anunciar" target="_blank" rel="noopener noreferrer">
+      <button>📢 Anunciar agora</button>
+    </a>
     <script type="text/javascript">
       atOptions = {
         'key' : 'f2047e9078f37ab78ad873ab52c5949e',
@@ -123,7 +122,6 @@
     <script type="text/javascript" src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
 
-  <!-- SDK / Scripts -->
   <script>
     const checkin = () => {
       window.Sonar.show({
@@ -150,7 +148,7 @@
 
     const shareReward = () => {
       show_9579151().then(() => {
-        alert("✅ Obrigado por compartilhar! Seus pontos foram adicionados.");
+        alert("✅ Tarefa realizada com sucesso!");
       }).catch(() => {
         alert("❌ Ocorreu um erro ao exibir o anúncio.");
       });
