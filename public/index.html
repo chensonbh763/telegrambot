@@ -62,7 +62,6 @@
 </head>
 <body>
 
-  <!-- MENU SUPERIOR -->
   <nav class="top-menu">
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
@@ -121,23 +120,27 @@
 
     const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
 
+    function gerarTarefaIdPorData(prefixo) {
+      return `${prefixo}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+    }
+
     const checkin = () => {
       if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
+      const tarefa_id = gerarTarefaIdPorData("checkin");
+
       window.Sonar.show({
         adUnit: 'checkin_diario',
         loader: true,
         onStart: () => console.log("Carregando anúncio..."),
         onReward: async () => {
-          alert("✅ Você ganhou seus pontos de check-in!");
-          await fetch("/api/concluir-tarefa", {
+          const res = await fetch("/api/concluir-tarefa", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              telegram_id,
-              tarefa_id: null,
-              pontos: 1
-            })
+            body: JSON.stringify({ telegram_id, tarefa_id, pontos: 1 })
           });
+
+          const data = await res.json();
+          alert(data.mensagem || data.erro || "Erro desconhecido.");
         },
         onError: () => alert("❌ Erro ao carregar anúncio.")
       });
@@ -145,17 +148,17 @@
 
     const shareReward = () => {
       if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
+      const tarefa_id = gerarTarefaIdPorData("missao");
+
       show_9579151().then(async () => {
-        alert("✅ Tarefa realizada com sucesso!");
-        await fetch("/api/concluir-tarefa", {
+        const res = await fetch("/api/concluir-tarefa", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            telegram_id,
-            tarefa_id: null,
-            pontos: 1
-          })
+          body: JSON.stringify({ telegram_id, tarefa_id, pontos: 1 })
         });
+
+        const data = await res.json();
+        alert(data.mensagem || data.erro || "Erro desconhecido.");
       }).catch(() => {
         alert("❌ Ocorreu um erro ao exibir o anúncio.");
       });
@@ -168,11 +171,7 @@
         await fetch("/api/concluir-tarefa", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            telegram_id,
-            tarefa_id,
-            pontos
-          })
+          body: JSON.stringify({ telegram_id, tarefa_id, pontos })
         });
       }).catch(() => {
         alert("⚠️ Não foi possível exibir o anúncio.");
