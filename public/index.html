@@ -104,44 +104,44 @@
       <button>🚀 Quero ser VIP</button>
     </a>
   </div>
-<h2>✅ Tarefas do Dia</h2>
-  <div id="tarefas">Carregando tarefas...</div>
+<h2>✅ Tarefas Gerais</h2>
+<div id="tarefas">Carregando tarefas...</div>
 
-  <script>
-    async function carregarTarefas() {
-      const res = await fetch("/api/tarefas");
-      const tarefas = await res.json();
-      const container = document.getElementById("tarefas");
-      container.innerHTML = "";
+<script>
+  async function carregarTarefas() {
+    const res = await fetch("/api/tarefas");
+    const tarefas = await res.json();
+    const container = document.getElementById("tarefas");
+    container.innerHTML = "";
 
-      if (tarefas.length === 0) {
-        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
-        return;
-      }
-
-      tarefas.forEach(t => {
-        const el = document.createElement("div");
-        el.className = "tarefa";
-        el.innerHTML = `
-          <strong>${t.titulo}</strong><br>
-          Pontos: ${t.pontos}<br>
-          <button onclick="mostrarAnuncio('${t.link}')">📺 Assistir anúncio para liberar</button>
-        `;
-        container.appendChild(el);
-      });
+    if (tarefas.length === 0) {
+      container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
+      return;
     }
 
-    function mostrarAnuncio(link) {
-      show_9579151().then(() => {
-        window.open(link, "_blank");
-      }).catch(() => {
-        alert("⚠️ Não foi possível exibir o anúncio.");
-      });
-    }
+    tarefas.forEach(t => {
+      const el = document.createElement("div");
+      el.className = "tarefa";
+      el.innerHTML = `
+        <strong>${t.titulo}</strong><br>
+        Pontos: ${t.pontos}<br>
+        <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}')">📺 Assistir anúncio para liberar</button>
+      `;
+      container.appendChild(el);
+    });
+  }
 
-    carregarTarefas();
-  </script>
+  function mostrarAnuncio(link) {
+    show_9579151('pop').then(() => {
+      const destino = decodeURIComponent(link);
+      window.location.href = destino;
+    }).catch(() => {
+      alert("⚠️ Não foi possível exibir o anúncio.");
+    });
+  }
 
+  carregarTarefas();
+</script>
 
 
 
