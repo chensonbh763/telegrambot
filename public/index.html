@@ -5,6 +5,7 @@
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
+  <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script> <!-- SDK Monetag -->
   <style>
     body {
@@ -121,7 +122,35 @@
     </script>
     <script type="text/javascript" src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
+<!-- 🟩 Container visual para o banner -->
+<div class="banner-box">
+  <h3>📢 Publicidade</h3>
+  <div id="meu_banner"></div>
+</div>
 
+<!-- Estilo do bloco -->
+<style>
+  .banner-box {
+    background: white;
+    border-radius: 8px;
+    margin: 20px 0;
+    padding: 15px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .banner-box h3 {
+    margin-bottom: 10px;
+    color: #2a8f43;
+  }
+</style>
+
+<!-- SDK do AdSonar -->
+<script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
+
+<!-- Chamada para exibir o banner -->
+<script>
+  window.Sonar.show({ adUnit: "meu_banner" });
+</script>
   <script>
     const checkin = () => {
       window.Sonar.show({
