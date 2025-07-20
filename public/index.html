@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
+  <script src="https://cdn.adsonar.io/sdk.js"></script>
   <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
-  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script> <!-- SDK Monetag -->
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -36,11 +36,11 @@
     .top-menu a:hover {
       text-decoration: underline;
     }
-    .card {
+    .card, .vip-box, .ads-box, .banner-box {
       background: white;
-      padding: 15px;
-      margin: 10px 0;
       border-radius: 8px;
+      margin: 20px 0;
+      padding: 15px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     button {
@@ -56,27 +56,29 @@
     button:hover {
       background: #1e6e34;
     }
-    .vip-box {
-      background: #e0ffe5;
-      border: 1px solid #2a8f43;
-      padding: 15px;
-      margin: 20px 0;
-      border-radius: 6px;
-      text-align: center;
-    }
-    .ads-box {
-      background: white;
-      border-radius: 8px;
-      margin: 20px 0;
+    #caixaEmbed {
+      background: #fff;
       padding: 10px;
+      border-radius: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
+    #caixaEmbed iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+      border-radius: 6px;
+    }
+    #caixaEmbed .fechar {
+      text-align: right;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <!-- MENU SUPERIOR -->
+  <!-- MENU -->
   <nav class="top-menu">
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
@@ -104,50 +106,12 @@
       <button>🚀 Quero ser VIP</button>
     </a>
   </div>
-<h2>✅ Tarefas Gerais</h2>
-<div id="tarefas">Carregando tarefas...</div>
 
-<script>
-  async function carregarTarefas() {
-    const res = await fetch("/api/tarefas");
-    const tarefas = await res.json();
-    const container = document.getElementById("tarefas");
-    container.innerHTML = "";
+  <h2>✅ Tarefas Gerais</h2>
+  <div id="tarefas">Carregando tarefas...</div>
 
-    if (tarefas.length === 0) {
-      container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
-      return;
-    }
+  <div id="caixaEmbed"></div>
 
-    tarefas.forEach(t => {
-      const el = document.createElement("div");
-      el.className = "tarefa";
-      el.innerHTML = `
-        <strong>${t.titulo}</strong><br>
-        Pontos: ${t.pontos}<br>
-        <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}')">📺 Assistir anúncio para liberar</button>
-      `;
-      container.appendChild(el);
-    });
-  }
-
-  function mostrarAnuncio(link) {
-    show_9579151('pop').then(() => {
-      const destino = decodeURIComponent(link);
-      window.location.href = destino;
-      alert("Tarefa será validada e pontos adicionados posteriormente.");
-    }).catch(() => {
-      alert("⚠️ Não foi possível exibir o anúncio.");
-    });
-  }
-
-  carregarTarefas();
-</script>
-
-
-
-
-  <!-- 🪙 Anúncio Adsterra -->
   <div class="ads-box">
     <p><strong>🔰 Patrocínio</strong><br>Quer sua marca aqui? Clique em anunciar</p>
     <a href="https://www.mfuture.com.br/lucremais/anuncie.html?utm_source=telegram&utm_medium=site&utm_campaign=botTask&utm_content=anunciar" target="_blank" rel="noopener noreferrer">
@@ -164,36 +128,15 @@
     </script>
     <script type="text/javascript" src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
-<!-- 🟩 Container visual para o banner -->
-<div class="banner-box">
-  <h3>📢 Publicidade</h3>
-  <div id="meu_banner"></div>
-</div>
 
-<!-- Estilo do bloco -->
-<style>
-  .banner-box {
-    background: white;
-    border-radius: 8px;
-    margin: 20px 0;
-    padding: 15px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    text-align: center;
-  }
-  .banner-box h3 {
-    margin-bottom: 10px;
-    color: #2a8f43;
-  }
-</style>
+  <div class="banner-box">
+    <h3>📢 Publicidade</h3>
+    <div id="meu_banner"></div>
+  </div>
 
-<!-- SDK do AdSonar -->
-<script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
-
-<!-- Chamada para exibir o banner -->
-<script>
-  window.Sonar.show({ adUnit: "meu_banner" });
-</script>
   <script>
+    window.Sonar.show({ adUnit: "meu_banner" });
+
     const checkin = () => {
       window.Sonar.show({
         adUnit: 'checkin_diario',
@@ -224,6 +167,54 @@
         alert("❌ Ocorreu um erro ao exibir o anúncio.");
       });
     };
+
+    async function carregarTarefas() {
+      const res = await fetch("/api/tarefas");
+      const tarefas = await res.json();
+      const container = document.getElementById("tarefas");
+      container.innerHTML = "";
+
+      if (tarefas.length === 0) {
+        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
+        return;
+      }
+
+      tarefas.forEach(t => {
+        const el = document.createElement("div");
+        el.className = "tarefa";
+        el.innerHTML = `
+          <strong>${t.titulo}</strong><br>
+          Pontos: ${t.pontos}<br>
+          <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}')">📺 Assistir anúncio para liberar</button>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    function mostrarAnuncio(link) {
+      show_9579151('pop').then(() => {
+        const destino = decodeURIComponent(link);
+        const embed = document.getElementById("caixaEmbed");
+        embed.innerHTML = `
+          <iframe src="${destino}"></iframe>
+          <div class="fechar">
+            <button onclick="fecharEmbed()">❌ Fechar tarefa</button>
+          </div>
+        `;
+        embed.style.display = "block";
+        window.scrollTo({ top: embed.offsetTop, behavior: "smooth" });
+      }).catch(() => {
+        alert("⚠️ Não foi possível exibir o anúncio.");
+      });
+    }
+
+    function fecharEmbed() {
+      const embed = document.getElementById("caixaEmbed");
+      embed.style.display = "none";
+      embed.innerHTML = "";
+    }
+
+    carregarTarefas();
   </script>
 
 </body>
