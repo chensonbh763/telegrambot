@@ -135,6 +135,7 @@
     show_9579151('pop').then(() => {
       const destino = decodeURIComponent(link);
       window.location.href = destino;
+      alert("Tarefa será validada e pontos adicionados posteriormente.");
     }).catch(() => {
       alert("⚠️ Não foi possível exibir o anúncio.");
     });
