@@ -52,50 +52,34 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+// 🔄 Rota para concluir tarefa e atualizar ranking
+app.post("/api/concluir-tarefa", async (req, res) => {
+  const { telegram_id, tarefa_id, pontos } = req.body;
 
-bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const indicadoId = msg.from.id;
-  const indicadorId = match[1]; // ID via parâmetro ?start=ID
+  try {
+    await pool.query(`
+      INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
+      VALUES ($1, $2, $3, NOW())
+    `, [telegram_id, tarefa_id, pontos]);
 
-  if (indicadorId && indicadorId !== indicadoId.toString()) {
-    try {
-      const check = await pool.query(
-        "SELECT * FROM indicacoes WHERE id_indicado = $1",
-        [indicadoId]
-      );
+    await pool.query(`
+      UPDATE usuarios
+      SET pontos = COALESCE(pontos, 0) + $1,
+          tarefas_feitas = COALESCE(tarefas_feitas, 0) + 1
+      WHERE telegram_id = $2
+    `, [pontos, telegram_id]);
 
-      if (check.rows.length === 0) {
-        await pool.query(
-          "INSERT INTO indicacoes (id_indicador, id_indicado, data) VALUES ($1, $2, NOW())",
-          [indicadorId, indicadoId]
-        );
-        bot.sendMessage(chatId, "🎉 Indicação registrada com sucesso!");
-      } else {
-        bot.sendMessage(chatId, "ℹ️ Você já foi indicado anteriormente.");
-      }
-    } catch (err) {
-      console.error("❌ Erro ao registrar indicação:", err.message);
-      bot.sendMessage(chatId, `⚠️ Erro ao registrar sua indicação: ${err.message}`);
-    }
+    res.json({ mensagem: "✅ Pontos registrados com sucesso!" });
+  } catch (err) {
+    console.error("Erro ao concluir tarefa:", err.message);
+    res.status(500).json({ erro: "Erro ao registrar tarefa" });
   }
-
-  bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia. 💸", {
-    reply_markup: {
-      inline_keyboard: [[
-        {
-          text: "📲 Acessar Mini App",
-          web_app: { url: "https://web-production-10f9d.up.railway.app/indicacoes.html" }
-        }
-      ]]
-    }
-  });
 });
 
+// 📈 Rota de ranking para pontuação e indicações
 app.get("/api/ranking", async (req, res) => {
   try {
-    const rankingPontos = await pool.query(`
+    const rankingTarefas = await pool.query(`
       SELECT telegram_id, nome, pontos
       FROM usuarios
       ORDER BY pontos DESC
@@ -110,12 +94,72 @@ app.get("/api/ranking", async (req, res) => {
     `);
 
     res.json({
-      tarefas: rankingPontos.rows,
+      tarefas: rankingTarefas.rows,
       indicacoes: rankingIndicacoes.rows
     });
   } catch (err) {
     console.error("Erro ao buscar ranking:", err.message);
     res.status(500).json({ erro: "Erro ao buscar ranking" });
+  }
+});
+
+// 🤖 Bot Telegram com sistema de indicação
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+
+bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const indicadoId = msg.from.id;
+  const indicadorId = match[1];
+  const nome = msg.from.first_name;
+
+  try {
+    // Garante que o usuário esteja registrado na tabela usuarios
+    await pool.query(`
+      INSERT INTO usuarios (telegram_id, nome)
+      VALUES ($1, $2)
+      ON CONFLICT (telegram_id) DO NOTHING
+    `, [indicadoId, nome]);
+
+    // Registra indicação se for válida
+    if (indicadorId && indicadorId !== indicadoId.toString()) {
+      const check = await pool.query(
+        "SELECT * FROM indicacoes WHERE id_indicado = $1",
+        [indicadoId]
+      );
+
+      if (check.rows.length === 0) {
+        await pool.query(
+          "INSERT INTO indicacoes (id_indicador, id_indicado, data) VALUES ($1, $2, NOW())",
+          [indicadorId, indicadoId]
+        );
+
+        await pool.query(`
+          UPDATE usuarios
+          SET indicacoes = COALESCE(indicacoes, 0) + 1
+          WHERE telegram_id = $1
+        `, [indicadorId]);
+
+        bot.sendMessage(chatId, "🎉 Indicação registrada com sucesso!");
+      } else {
+        bot.sendMessage(chatId, "ℹ️ Você já foi indicado anteriormente.");
+      }
+    }
+
+    // Mensagem de boas-vindas
+    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia. 💸", {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: "📲 Acessar Mini App",
+            web_app: { url: "https://web-production-10f9d.up.railway.app/indicacoes.html" }
+          }
+        ]]
+      }
+    });
+
+  } catch (err) {
+    console.error("Erro no bot:", err.message);
+    bot.sendMessage(chatId, `⚠️ Erro: ${err.message}`);
   }
 });
 
