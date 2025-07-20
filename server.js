@@ -52,11 +52,19 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-// 🔄 Rota para concluir tarefa e atualizar ranking
 app.post("/api/concluir-tarefa", async (req, res) => {
   const { telegram_id, tarefa_id, pontos } = req.body;
 
   try {
+    const check = await pool.query(
+      `SELECT 1 FROM tarefas_concluidas WHERE telegram_id = $1 AND tarefa_id = $2`,
+      [telegram_id, tarefa_id]
+    );
+
+    if (check.rows.length > 0) {
+      return res.status(400).json({ erro: "❌ Essa tarefa já foi concluída hoje." });
+    }
+
     await pool.query(`
       INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
       VALUES ($1, $2, $3, NOW())
@@ -76,7 +84,6 @@ app.post("/api/concluir-tarefa", async (req, res) => {
   }
 });
 
-// 📈 Rota de ranking para pontuação e indicações
 app.get("/api/ranking", async (req, res) => {
   try {
     const rankingTarefas = await pool.query(`
@@ -103,7 +110,6 @@ app.get("/api/ranking", async (req, res) => {
   }
 });
 
-// 🤖 Bot Telegram com sistema de indicação
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
@@ -113,14 +119,12 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const nome = msg.from.first_name;
 
   try {
-    // Garante que o usuário esteja registrado na tabela usuarios
     await pool.query(`
       INSERT INTO usuarios (telegram_id, nome)
       VALUES ($1, $2)
       ON CONFLICT (telegram_id) DO NOTHING
     `, [indicadoId, nome]);
 
-    // Registra indicação se for válida
     if (indicadorId && indicadorId !== indicadoId.toString()) {
       const check = await pool.query(
         "SELECT * FROM indicacoes WHERE id_indicado = $1",
@@ -145,7 +149,6 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       }
     }
 
-    // Mensagem de boas-vindas
     bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia. 💸", {
       reply_markup: {
         inline_keyboard: [[
