@@ -1,140 +1,17 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>LucreMaisTask</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.adsonar.io/sdk.js"></script> <!-- SDK AdSonar -->
-  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script> <!-- SDK Monetag -->
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-    }
-    .top-menu {
-      background: #2a8f43;
-      padding: 10px 0;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      border-radius: 6px;
-    }
-    .top-menu a {
-      color: white;
-      text-decoration: none;
-      margin: 0 15px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .top-menu a:hover {
-      text-decoration: underline;
-    }
-    .card {
-      background: white;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      background: #2a8f43;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1e6e34;
-    }
-    .vip-box {
-      background: #e0ffe5;
-      border: 1px solid #2a8f43;
-      padding: 15px;
-      margin: 20px 0;
-      border-radius: 6px;
-    }
-  </style>
-</head>
-<body>
+- SINTOMA 
 
-  <!-- MENU SUPERIOR -->
-  <nav class="top-menu">
-    <a href="index.html">🏠 Início</a>
-    <a href="indicacoes.html">👥 Indicações</a>
-    <a href="pontuacao.html">📊 Pontuação</a>
-    <a href="saque.html">💰 Saque</a>
-  </nav>
+Descrição do problema : usuária entrou em contato informando que a impressora não esta saindo a impressão na impressora. usuária solicita um técnico na unidade. usuaria informa que nao aparece mensagem de erro
+- AÇÃO
 
-  <h2>✅ LUCRE MAIS TAREFAS</h2>
+Nome: Dayse Rodrigues Reis Carmo
+Usuário: uni9339 ou uni08889
+Unidade: HU contorno
+Setor: 3 andar / unidade de internação 
+Telefone (com prefixo): 992260584
+IP / Hostname: usuária informa que não pode minimizar a tela
+N° de série: N/A
+Horário de Trabalho: 18:30 as 06:30
 
-  <div class="card">
-    <p>- Quer ganhar pontos rapidinho? Assista um vídeo e turbine sua pontuação!</p>
-    <button onclick="checkin()">📺 Ver anúncio e ganhar pontos</button>
-  </div>
+- Testes realizados: realizado a coleta de dados para a abertura de chamado
 
-  <div class="card">
-    <h3>📢 Compartilhe e Ganhe!</h3>
-    <p>Convide amigos para usar o <strong>LucreMaisTask_bot</strong>:</p>
-    <ol>
-      <li>Compartilhe o link <a href="https://t.me/LucreMaisTask_bot" target="_blank">t.me/LucreMaisTask_bot</a> em grupos ou com amigos.</li>
-      <li>Clique no botão abaixo após compartilhar.</li>
-      <li>Assista ao anúncio e receba seus pontos!</li>
-    </ol>
-    <button onclick="shareReward()">🔗 Compartilhei! Quero meus pontos</button>
-  </div>
-
-  <div class="vip-box">
-    <strong>🎯 Torne-se VIP!</strong><br>
-    Ganhe <b>% da pontuação</b> de todos que usam esse bot de tarefas.<br>
-    <button onclick="window.open('https://www.mfuture.com.br/lucremais/prevenda.html', '_blank')">
-      🚀 Quero ser VIP
-    </button>
-  </div>
-
-  <!-- Banner AdSonar -->
-  <div id="checkin_banner"></div>
-
-  <script>
-    const checkin = () => {
-      window.Sonar.show({
-        adUnit: 'checkin_diario',
-        loader: true,
-        onStart: () => console.log("Carregando anúncio..."),
-        onReward: () => {
-          alert("✅ Você ganhou seus pontos de check-in!");
-        },
-        onError: () => alert("❌ Erro ao carregar anúncio."),
-        onClose: () => console.log("Anúncio fechado.")
-      });
-    };
-
-    const showBannerAd = () => {
-      window.Sonar.show({
-        adUnit: 'checkin_banner',
-        onShow: () => console.log("📢 Banner exibido com sucesso."),
-        onError: () => console.warn("❌ Erro ao carregar banner."),
-        onRefresh: (status) => console.log("🔄 Banner atualizado:", status)
-      });
-    };
-    setTimeout(showBannerAd, 1000);
-
-    const shareReward = () => {
-      show_9579151().then(() => {
-        alert("✅ Obrigado por compartilhar! Seus pontos foram adicionados.");
-      }).catch(() => {
-        alert("❌ Ocorreu um erro ao exibir o anúncio.");
-      });
-    };
-  </script>
-
-</body>
-</html>
+- SOLUÇÃO : encaminhado ao field
