@@ -228,7 +228,25 @@ app.post("/api/solicitar-saque", async (req, res) => {
     res.status(500).json({ error: "Erro interno do servidor." });
   }
 });
+// 🔁 Histórico de saques por usuário
+app.get("/api/saques", async (req, res) => {
+  const { telegram_id } = req.query;
+  if (!telegram_id) return res.status(400).json({ error: "telegram_id é obrigatório" });
 
+  try {
+    const result = await pool.query(`
+      SELECT valor_solicitado, status, data_solicitacao
+      FROM saques
+      WHERE telegram_id = $1
+      ORDER BY data_solicitacao DESC
+    `, [telegram_id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Erro ao buscar histórico de saques:", err);
+    res.status(500).json({ error: "Erro ao buscar histórico" });
+  }
+});
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
