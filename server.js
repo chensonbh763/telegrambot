@@ -18,9 +18,7 @@ app.get("/", (req, res) => {
 // Buscar tarefas ativas
 app.get("/api/tarefas", async (req, res) => {
   try {
-    const { rows } = await pool.query(
-      "SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC"
-    );
+    const { rows } = await pool.query("SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC");
     res.json(rows);
   } catch (error) {
     console.error("Erro ao buscar tarefas:", error);
@@ -28,7 +26,7 @@ app.get("/api/tarefas", async (req, res) => {
   }
 });
 
-// Criar nova tarefa via admin
+// Criar nova tarefa
 app.post("/admin/tarefa", async (req, res) => {
   const { titulo, link, dia, pontos } = req.body;
   try {
@@ -43,7 +41,7 @@ app.post("/admin/tarefa", async (req, res) => {
   }
 });
 
-// Execução de SQL manual (uso interno)
+// Execução de SQL
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
@@ -55,7 +53,7 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-// Concluir tarefa com verificação diária
+// Concluir tarefa com verificação de repetição
 app.post("/api/concluir-tarefa", async (req, res) => {
   const { telegram_id, tarefa_id, pontos } = req.body;
 
@@ -88,7 +86,7 @@ app.post("/api/concluir-tarefa", async (req, res) => {
   }
 });
 
-// Ranking de tarefas e indicações
+// Ranking
 app.get("/api/ranking", async (req, res) => {
   try {
     const rankingTarefas = await pool.query(`
@@ -115,7 +113,19 @@ app.get("/api/ranking", async (req, res) => {
   }
 });
 
-// Bot Telegram /start e indicações
+// RESTful: buscar usuário por ID
+app.get("/api/usuarios/:telegram_id", async (req, res) => {
+  try {
+    const { telegram_id } = req.params;
+    const result = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar usuário" });
+  }
+});
+
+// Bot Telegram
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
@@ -155,7 +165,7 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       }
     }
 
-    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique no botão abaixo para acessar as tarefas do dia. 💸", {
+    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique abaixo para acessar as tarefas do dia:", {
       reply_markup: {
         inline_keyboard: [[
           {
@@ -172,22 +182,7 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   }
 });
 
-// ✅ NOVO: Buscar dados do usuário (pontos + VIP)
-app.get("/api/usuario", async (req, res) => {
-  const { telegram_id } = req.query;
-  if (!telegram_id) return res.status(400).json({ error: "telegram_id é obrigatório" });
-
-  try {
-    const result = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error("Erro ao buscar usuário:", err);
-    res.status(500).json({ error: "Erro no servidor" });
-  }
-});
-
-// Solicitar saque
+// Solicitar saque com validação de saque diário
 app.post("/api/solicitar-saque", async (req, res) => {
   const { telegram_id, chave_pix, cpf } = req.body;
 
@@ -209,11 +204,20 @@ app.post("/api/solicitar-saque", async (req, res) => {
       return res.status(400).json({ error: "Pontos insuficientes para saque." });
     }
 
+    const saqueHoje = await pool.query(`
+      SELECT 1 FROM saques
+      WHERE telegram_id = $1 AND DATE(data_solicitacao) = CURRENT_DATE
+    `, [telegram_id]);
+
+    if (saqueHoje.rows.length > 0) {
+      return res.status(400).json({ error: "Você já solicitou um saque hoje. Aguarde a análise." });
+    }
+
     const valor = (pontos * 0.05).toFixed(2);
 
     await pool.query(`
-      INSERT INTO saques (telegram_id, pontos_solicitados, valor_solicitado, chave_pix, cpf)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO saques (telegram_id, pontos_solicitados, valor_solicitado, chave_pix, cpf, status, data_solicitacao)
+      VALUES ($1, $2, $3, $4, $5, 'pendente', NOW())
     `, [telegram_id, pontos, valor, chave_pix, cpf]);
 
     await pool.query("UPDATE usuarios SET pontos = 0 WHERE telegram_id = $1", [telegram_id]);
