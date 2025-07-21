@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Saque</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -19,6 +20,7 @@
       position: sticky;
       top: 0;
       z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       margin-bottom: 20px;
       border-radius: 6px;
     }
@@ -34,41 +36,36 @@
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
     }
-    input, button {
+    .progress {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
+      background: #e0e0e0;
+      border-radius: 20px;
+      margin: 15px 0;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #2a8f43;
+      border-radius: 20px;
+      color: white;
+      text-align: center;
+      line-height: 20px;
+      transition: 0.4s;
     }
     button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 15px;
       background: #2a8f43;
       color: white;
       border: none;
+      border-radius: 5px;
       font-weight: bold;
       cursor: pointer;
     }
     button:disabled {
-      background: #ccc;
+      background: gray;
       cursor: not-allowed;
-    }
-    .barra {
-      height: 20px;
-      background: #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-    .progresso {
-      height: 100%;
-      background: #2a8f43;
-      width: 0%;
-      text-align: center;
-      color: white;
-      font-weight: bold;
     }
   </style>
 </head>
@@ -82,81 +79,59 @@
 
   <div class="card">
     <h2>💰 Solicitar Saque</h2>
-    <p><strong>Regras:</strong><br>
-    VIP: mínimo de 200 pontos (R$10,00)<br>
-    Não VIP: mínimo de 400 pontos (R$20,00)</p>
+    <p><strong>Regras:</strong></p>
+    <ul>
+      <li>VIP: mínimo de 200 pontos (R$10,00)</li>
+      <li>Não VIP: mínimo de 400 pontos (R$20,00)</li>
+    </ul>
 
-    <p><strong>Seus pontos:</strong> <span id="pontos">0</span> (R$<span id="valor">0.00</span>)</p>
-    <div class="barra">
-      <div class="progresso" id="progresso">0%</div>
+    <p id="pontos">Carregando pontos...</p>
+
+    <div class="progress">
+      <div id="barra" class="progress-bar" style="width: 0%">0%</div>
     </div>
 
-    <form id="formSaque" style="display:none">
-      <input type="text" id="cpf" placeholder="Digite seu CPF" required />
-      <input type="text" id="chave_pix" placeholder="Digite sua chave PIX" required />
-      <button type="submit" id="btnSaque">Solicitar saque</button>
-    </form>
-
-    <p id="mensagem"></p>
+    <button id="btn-saque" onclick="solicitarSaque()" disabled>💸 Solicitar Saque</button>
   </div>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id;
+    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
 
-    async function carregarUsuario() {
+    async function carregarPontos() {
       if (!telegram_id) {
-        document.getElementById("mensagem").innerText = "⚠️ Telegram ID não encontrado.";
+        document.getElementById("pontos").innerText = "⚠️ Telegram ID não detectado.";
         return;
       }
 
-      const res = await fetch(`/api/usuario/${telegram_id}`);
-      const user = await res.json();
+      try {
+        const res = await fetch(`/api/usuario?telegram_id=${telegram_id}`);
+        const user = await res.json();
 
-      const pontos = user.pontos || 0;
-      const vip = user.vip === true;
-      const valor = (pontos * 0.05).toFixed(2);
-      const minimo = vip ? 200 : 400;
-      const porcentagem = Math.min(100, Math.round((pontos / minimo) * 100));
+        const pontos = user.pontos || 0;
+        const vip = user.vip;
+        const meta = vip ? 200 : 400;
+        const valorReais = (pontos * 0.05).toFixed(2);
 
-      document.getElementById("pontos").innerText = pontos;
-      document.getElementById("valor").innerText = valor;
-      document.getElementById("progresso").style.width = porcentagem + "%";
-      document.getElementById("progresso").innerText = porcentagem + "%";
+        document.getElementById("pontos").innerText = `Seus pontos: ${pontos} (R$${valorReais})`;
 
-      if (pontos >= minimo) {
-        document.getElementById("formSaque").style.display = "block";
-      } else {
-        document.getElementById("mensagem").innerText = `⏳ Você precisa de pelo menos ${minimo} pontos para solicitar o saque.`;
+        const percentual = Math.min((pontos / meta) * 100, 100);
+        const barra = document.getElementById("barra");
+        barra.style.width = percentual + "%";
+        barra.innerText = `${Math.floor(percentual)}%`;
+
+        const botao = document.getElementById("btn-saque");
+        botao.disabled = !(pontos >= meta);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("pontos").innerText = "Erro ao carregar dados.";
       }
     }
 
-    document.getElementById("formSaque").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const cpf = document.getElementById("cpf").value;
-      const chave_pix = document.getElementById("chave_pix").value;
+    function solicitarSaque() {
+      window.location.href = "https://www.mfuture.com.br/lucremais/saque.html";
+    }
 
-      const res = await fetch("/api/solicitar-saque", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegram_id, cpf, chave_pix })
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        document.getElementById("formSaque").style.display = "none";
-        document.getElementById("mensagem").innerText = `✅ Saque solicitado com sucesso. Valor: R$${data.valor}\nAguardando cadastro/pagamento.`;
-        document.getElementById("pontos").innerText = "0";
-        document.getElementById("valor").innerText = "0.00";
-        document.getElementById("progresso").style.width = "0%";
-        document.getElementById("progresso").innerText = "0%";
-      } else {
-        document.getElementById("mensagem").innerText = "❌ Erro: " + (data.error || "Falha no envio.");
-      }
-    });
-
-    carregarUsuario();
+    carregarPontos();
   </script>
 </body>
 </html>
