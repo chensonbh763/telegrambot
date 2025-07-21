@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Saque</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -20,7 +19,6 @@
       position: sticky;
       top: 0;
       z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       margin-bottom: 20px;
       border-radius: 6px;
     }
@@ -31,47 +29,46 @@
       font-weight: bold;
       font-size: 16px;
     }
-    .top-menu a:hover {
-      text-decoration: underline;
-    }
     .card {
       background: white;
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      text-align: center;
+      margin-bottom: 20px;
     }
-    .progress-container {
-      background: #ddd;
-      border-radius: 20px;
-      overflow: hidden;
-      height: 20px;
+    input, button {
+      width: 100%;
+      padding: 10px;
       margin-top: 10px;
-    }
-    .progress-bar {
-      height: 100%;
-      background: #2a8f43;
-      width: 0%;
-      transition: width 0.5s ease-in-out;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
     }
     button {
-      padding: 10px;
-      margin-top: 15px;
       background: #2a8f43;
       color: white;
       border: none;
-      border-radius: 4px;
-      font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
     }
     button:disabled {
-      background: #aaa;
+      background: #ccc;
       cursor: not-allowed;
     }
-    #status {
-      margin-top: 15px;
+    .barra {
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progresso {
+      height: 100%;
+      background: #2a8f43;
+      width: 0%;
+      text-align: center;
+      color: white;
       font-weight: bold;
-      color: #333;
     }
   </style>
 </head>
@@ -84,62 +81,82 @@
   </nav>
 
   <div class="card">
-    <h2>💰 Saque</h2>
-    <p><strong>Pontos:</strong> <span id="pontos">Carregando...</span></p>
-    <div class="progress-container">
-      <div id="progress" class="progress-bar"></div>
+    <h2>💰 Solicitar Saque</h2>
+    <p><strong>Regras:</strong><br>
+    VIP: mínimo de 200 pontos (R$10,00)<br>
+    Não VIP: mínimo de 400 pontos (R$20,00)</p>
+
+    <p><strong>Seus pontos:</strong> <span id="pontos">0</span> (R$<span id="valor">0.00</span>)</p>
+    <div class="barra">
+      <div class="progresso" id="progresso">0%</div>
     </div>
-    <p><strong>Mínimo para saque:</strong> <span id="meta">-</span></p>
-    <button id="btnSaque" disabled onclick="solicitarSaque()">🚀 Solicitar Saque</button>
-    <div id="status"></div>
+
+    <form id="formSaque" style="display:none">
+      <input type="text" id="cpf" placeholder="Digite seu CPF" required />
+      <input type="text" id="chave_pix" placeholder="Digite sua chave PIX" required />
+      <button type="submit" id="btnSaque">Solicitar saque</button>
+    </form>
+
+    <p id="mensagem"></p>
   </div>
 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const tg = window.Telegram.WebApp;
-    const telegram_id = tg.initDataUnsafe?.user?.id;
+    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id;
 
-    async function carregarInfo() {
-      try {
-        const res = await fetch(`/api/usuario/${telegram_id}`);
-        const user = await res.json();
+    async function carregarUsuario() {
+      if (!telegram_id) {
+        document.getElementById("mensagem").innerText = "⚠️ Telegram ID não encontrado.";
+        return;
+      }
 
-        const pontos = user.pontos || 0;
-        const vip = user.vip === true || user.vip === 1;
-        const meta = vip ? 200 : 400;
+      const res = await fetch(`/api/usuario/${telegram_id}`);
+      const user = await res.json();
 
-        document.getElementById("pontos").textContent = pontos;
-        document.getElementById("meta").textContent = meta + " pontos";
+      const pontos = user.pontos || 0;
+      const vip = user.vip === true;
+      const valor = (pontos * 0.05).toFixed(2);
+      const minimo = vip ? 200 : 400;
+      const porcentagem = Math.min(100, Math.round((pontos / minimo) * 100));
 
-        const progresso = Math.min((pontos / meta) * 100, 100);
-        document.getElementById("progress").style.width = progresso + "%";
+      document.getElementById("pontos").innerText = pontos;
+      document.getElementById("valor").innerText = valor;
+      document.getElementById("progresso").style.width = porcentagem + "%";
+      document.getElementById("progresso").innerText = porcentagem + "%";
 
-        const btn = document.getElementById("btnSaque");
-        btn.disabled = pontos < meta;
-      } catch (err) {
-        document.getElementById("status").textContent = "Erro ao carregar dados.";
+      if (pontos >= minimo) {
+        document.getElementById("formSaque").style.display = "block";
+      } else {
+        document.getElementById("mensagem").innerText = `⏳ Você precisa de pelo menos ${minimo} pontos para solicitar o saque.`;
       }
     }
 
-    async function solicitarSaque() {
-      try {
-        await fetch("/api/solicitar-saque", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegram_id })
-        });
+    document.getElementById("formSaque").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const cpf = document.getElementById("cpf").value;
+      const chave_pix = document.getElementById("chave_pix").value;
 
-        document.getElementById("status").textContent =
-          "✅ Solicitação enviada! Aguardando cadastro/pagamento...";
-        document.getElementById("pontos").textContent = "0";
-        document.getElementById("progress").style.width = "0%";
-        document.getElementById("btnSaque").disabled = true;
-      } catch (err) {
-        document.getElementById("status").textContent =
-          "❌ Erro ao solicitar saque.";
+      const res = await fetch("/api/solicitar-saque", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegram_id, cpf, chave_pix })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById("formSaque").style.display = "none";
+        document.getElementById("mensagem").innerText = `✅ Saque solicitado com sucesso. Valor: R$${data.valor}\nAguardando cadastro/pagamento.`;
+        document.getElementById("pontos").innerText = "0";
+        document.getElementById("valor").innerText = "0.00";
+        document.getElementById("progresso").style.width = "0%";
+        document.getElementById("progresso").innerText = "0%";
+      } else {
+        document.getElementById("mensagem").innerText = "❌ Erro: " + (data.error || "Falha no envio.");
       }
-    }
+    });
 
-    carregarInfo();
+    carregarUsuario();
   </script>
 </body>
 </html>
