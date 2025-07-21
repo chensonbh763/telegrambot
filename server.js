@@ -15,6 +15,7 @@ app.get("/", (req, res) => {
   res.send("🚀 API LucreMaisTask está no ar!");
 });
 
+// Buscar tarefas ativas
 app.get("/api/tarefas", async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -27,6 +28,7 @@ app.get("/api/tarefas", async (req, res) => {
   }
 });
 
+// Criar nova tarefa via admin
 app.post("/admin/tarefa", async (req, res) => {
   const { titulo, link, dia, pontos } = req.body;
   try {
@@ -41,6 +43,7 @@ app.post("/admin/tarefa", async (req, res) => {
   }
 });
 
+// Execução de SQL manual (uso interno)
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
@@ -52,12 +55,13 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
+// Concluir tarefa com verificação diária
 app.post("/api/concluir-tarefa", async (req, res) => {
   const { telegram_id, tarefa_id, pontos } = req.body;
 
   try {
     const check = await pool.query(
-      `SELECT 1 FROM tarefas_concluidas WHERE telegram_id = $1 AND tarefa_id = $2`,
+      `SELECT 1 FROM tarefas_concluidas WHERE telegram_id = $1 AND tarefa_id = $2 AND DATE(data) = CURRENT_DATE`,
       [telegram_id, tarefa_id]
     );
 
@@ -84,6 +88,7 @@ app.post("/api/concluir-tarefa", async (req, res) => {
   }
 });
 
+// Ranking de tarefas e indicações
 app.get("/api/ranking", async (req, res) => {
   try {
     const rankingTarefas = await pool.query(`
@@ -110,6 +115,7 @@ app.get("/api/ranking", async (req, res) => {
   }
 });
 
+// Bot Telegram /start e indicações
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
@@ -166,6 +172,22 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   }
 });
 
+// ✅ NOVO: Buscar dados do usuário (pontos + VIP)
+app.get("/api/usuario", async (req, res) => {
+  const { telegram_id } = req.query;
+  if (!telegram_id) return res.status(400).json({ error: "telegram_id é obrigatório" });
+
+  try {
+    const result = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Erro ao buscar usuário:", err);
+    res.status(500).json({ error: "Erro no servidor" });
+  }
+});
+
+// Solicitar saque
 app.post("/api/solicitar-saque", async (req, res) => {
   const { telegram_id, chave_pix, cpf } = req.body;
 
@@ -174,7 +196,7 @@ app.post("/api/solicitar-saque", async (req, res) => {
   }
 
   try {
-    const userResult = await db.query("SELECT pontos, vip FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+    const userResult = await pool.query("SELECT pontos, vip FROM usuarios WHERE telegram_id = $1", [telegram_id]);
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: "Usuário não encontrado." });
@@ -187,16 +209,14 @@ app.post("/api/solicitar-saque", async (req, res) => {
       return res.status(400).json({ error: "Pontos insuficientes para saque." });
     }
 
-    const valor = (pontos * 0.05).toFixed(2); // Ex: 200 pontos = R$10.00
+    const valor = (pontos * 0.05).toFixed(2);
 
-    // Inserir saque
-    await db.query(`
+    await pool.query(`
       INSERT INTO saques (telegram_id, pontos_solicitados, valor_solicitado, chave_pix, cpf)
       VALUES ($1, $2, $3, $4, $5)
     `, [telegram_id, pontos, valor, chave_pix, cpf]);
 
-    // Zerar pontos do usuário
-    await db.query("UPDATE usuarios SET pontos = 0 WHERE telegram_id = $1", [telegram_id]);
+    await pool.query("UPDATE usuarios SET pontos = 0 WHERE telegram_id = $1", [telegram_id]);
 
     res.json({ success: true, message: "Saque solicitado com sucesso.", valor });
   } catch (err) {
