@@ -166,6 +166,45 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   }
 });
 
+app.post("/api/solicitar-saque", async (req, res) => {
+  const { telegram_id, chave_pix, cpf } = req.body;
+
+  if (!telegram_id || !chave_pix || !cpf) {
+    return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+  }
+
+  try {
+    const userResult = await db.query("SELECT pontos, vip FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const { pontos, vip } = userResult.rows[0];
+    const pontosMinimos = vip ? 200 : 400;
+
+    if (pontos < pontosMinimos) {
+      return res.status(400).json({ error: "Pontos insuficientes para saque." });
+    }
+
+    const valor = (pontos * 0.05).toFixed(2); // Ex: 200 pontos = R$10.00
+
+    // Inserir saque
+    await db.query(`
+      INSERT INTO saques (telegram_id, pontos_solicitados, valor_solicitado, chave_pix, cpf)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [telegram_id, pontos, valor, chave_pix, cpf]);
+
+    // Zerar pontos do usuário
+    await db.query("UPDATE usuarios SET pontos = 0 WHERE telegram_id = $1", [telegram_id]);
+
+    res.json({ success: true, message: "Saque solicitado com sucesso.", valor });
+  } catch (err) {
+    console.error("Erro ao solicitar saque:", err);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
