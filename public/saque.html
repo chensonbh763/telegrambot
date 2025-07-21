@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Saque</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
       font-family: sans-serif;
@@ -15,21 +14,16 @@
     }
     .top-menu {
       background: #2a8f43;
-      padding: 10px 0;
+      padding: 10px;
       text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
       border-radius: 6px;
+      margin-bottom: 20px;
     }
     .top-menu a {
       color: white;
       text-decoration: none;
       margin: 0 15px;
       font-weight: bold;
-      font-size: 16px;
     }
     .card {
       background: white;
@@ -37,35 +31,36 @@
       border-radius: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
-    .progress {
-      width: 100%;
-      background: #e0e0e0;
-      border-radius: 20px;
-      margin: 15px 0;
-    }
-    .progress-bar {
-      height: 20px;
-      background: #2a8f43;
-      border-radius: 20px;
-      color: white;
-      text-align: center;
-      line-height: 20px;
-      transition: 0.4s;
-    }
-    button {
+    input, button {
       width: 100%;
       padding: 10px;
-      margin-top: 15px;
-      background: #2a8f43;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2a8f43;
       color: white;
-      border: none;
-      border-radius: 5px;
       font-weight: bold;
+      border: none;
       cursor: pointer;
     }
     button:disabled {
-      background: gray;
+      background-color: #ccc;
       cursor: not-allowed;
+    }
+    .progress {
+      margin: 10px 0;
+      height: 15px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #2a8f43;
+      width: 0%;
+      transition: width 0.5s ease;
     }
   </style>
 </head>
@@ -79,59 +74,81 @@
 
   <div class="card">
     <h2>💰 Solicitar Saque</h2>
-    <p><strong>Regras:</strong></p>
+    <p>Regras:</p>
     <ul>
       <li>VIP: mínimo de 200 pontos (R$10,00)</li>
       <li>Não VIP: mínimo de 400 pontos (R$20,00)</li>
     </ul>
 
-    <p id="pontos">Carregando pontos...</p>
+    <p>Seus pontos: <strong id="pontos">0</strong> (<span id="reais">R$0,00</span>)</p>
+    <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
 
-    <div class="progress">
-      <div id="barra" class="progress-bar" style="width: 0%">0%</div>
-    </div>
-
-    <button id="btn-saque" onclick="solicitarSaque()" disabled>💸 Solicitar Saque</button>
+    <form id="formSaque">
+      <input type="text" id="nome" placeholder="Seu nome completo" required />
+      <input type="text" id="cpf" placeholder="CPF (apenas números)" required />
+      <input type="text" id="pix" placeholder="Chave PIX (email, tel, CPF...)" required />
+      <button type="submit" id="btnSaque" disabled>Solicitar Saque</button>
+    </form>
+    <p id="status"></p>
   </div>
 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
+    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id?.toString();
+    let pontos = 0;
+    let vip = false;
 
-    async function carregarPontos() {
-      if (!telegram_id) {
-        document.getElementById("pontos").innerText = "⚠️ Telegram ID não detectado.";
-        return;
-      }
+    async function carregarDados() {
+      if (!telegram_id) return;
 
-      try {
-        const res = await fetch(`/api/usuario?telegram_id=${telegram_id}`);
-        const user = await res.json();
+      const res = await fetch(`/api/usuarios/${telegram_id}`);
+      const user = await res.json();
 
-        const pontos = user.pontos || 0;
-        const vip = user.vip;
-        const meta = vip ? 200 : 400;
-        const valorReais = (pontos * 0.05).toFixed(2);
+      pontos = user.pontos || 0;
+      vip = user.vip;
 
-        document.getElementById("pontos").innerText = `Seus pontos: ${pontos} (R$${valorReais})`;
+      document.getElementById("pontos").innerText = pontos;
+      document.getElementById("reais").innerText = `R$ ${(pontos * 0.05).toFixed(2)}`;
 
-        const percentual = Math.min((pontos / meta) * 100, 100);
-        const barra = document.getElementById("barra");
-        barra.style.width = percentual + "%";
-        barra.innerText = `${Math.floor(percentual)}%`;
+      const pontosMinimos = vip ? 200 : 400;
+      const perc = Math.min((pontos / pontosMinimos) * 100, 100);
+      document.getElementById("progressBar").style.width = perc + "%";
 
-        const botao = document.getElementById("btn-saque");
-        botao.disabled = !(pontos >= meta);
-      } catch (err) {
-        console.error(err);
-        document.getElementById("pontos").innerText = "Erro ao carregar dados.";
+      if (pontos >= pontosMinimos) {
+        document.getElementById("btnSaque").disabled = false;
       }
     }
 
-    function solicitarSaque() {
-      window.location.href = "https://www.mfuture.com.br/lucremais/saque.html";
-    }
+    document.getElementById("formSaque").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-    carregarPontos();
+      const nome = document.getElementById("nome").value.trim();
+      const cpf = document.getElementById("cpf").value.trim();
+      const chave_pix = document.getElementById("pix").value.trim();
+
+      if (!nome || !cpf || !chave_pix) return alert("Preencha todos os campos");
+
+      const res = await fetch("/api/solicitar-saque", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegram_id, cpf, chave_pix })
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        document.getElementById("status").innerText = "✅ Saque solicitado com sucesso!";
+        document.getElementById("formSaque").reset();
+        document.getElementById("btnSaque").disabled = true;
+        document.getElementById("pontos").innerText = "0";
+        document.getElementById("reais").innerText = "R$0,00";
+        document.getElementById("progressBar").style.width = "0%";
+      } else {
+        document.getElementById("status").innerText = "❌ Erro: " + (json.error || "Falha ao solicitar");
+      }
+    });
+
+    carregarDados();
   </script>
 </body>
 </html>
