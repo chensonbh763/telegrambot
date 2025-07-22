@@ -69,15 +69,14 @@ app.post("/api/concluir-tarefa", async (req, res) => {
 
 // 🔹 4. Rotas de Usuário
 app.get("/api/usuarios/:telegram_id", async (req, res) => {
-  try {
-    const { telegram_id } = req.params;
-    const result = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
-    res.json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: "Erro ao buscar usuário" });
-  }
+  const { telegram_id } = req.params;
+  const result = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+
+  if (result.rows.length === 0) return res.status(404).json({ error: "Usuário não encontrado" });
+
+  res.json(result.rows[0]); // Deve conter "pontos"
 });
+
 
 // 🔹 5. Ranking
 app.get("/api/ranking", async (req, res) => {
