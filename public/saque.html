@@ -93,35 +93,37 @@
   </div>
 
   <hr>
-<h3>📜 Histórico de Saques</h3>
-<div id="historico">
-  <p>Carregando histórico...</p>
-</div>
+  <h3>📜 Histórico de Saques</h3>
+  <div id="historico">
+    <p>Carregando histórico...</p>
+  </div>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
-    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id?.toString();
+    const telegram_id = window.Telegram.WebApp?.initDataUnsafe?.user?.id?.toString();
     let pontos = 0;
     let vip = false;
 
     async function carregarDados() {
       if (!telegram_id) return;
 
-      const res = await fetch(`/api/usuarios/${telegram_id}`);
-      const user = await res.json();
+      try {
+        const res = await fetch(`/api/usuarios/${telegram_id}`);
+        const user = await res.json();
 
-      pontos = user.pontos || 0;
-      vip = user.vip;
+        pontos = user.pontos || 0;
+        vip = user.vip;
 
-      document.getElementById("pontos").innerText = pontos;
-      document.getElementById("reais").innerText = `R$ ${(pontos * 0.05).toFixed(2)}`;
+        document.getElementById("pontos").innerText = pontos;
+        document.getElementById("reais").innerText = `R$ ${(pontos * 0.05).toFixed(2)}`;
 
-      const pontosMinimos = vip ? 200 : 400;
-      const perc = Math.min((pontos / pontosMinimos) * 100, 100);
-      document.getElementById("progressBar").style.width = perc + "%";
+        const pontosMinimos = vip ? 200 : 400;
+        const perc = Math.min((pontos / pontosMinimos) * 100, 100);
+        document.getElementById("progressBar").style.width = perc + "%";
 
-      if (pontos >= pontosMinimos) {
-        document.getElementById("btnSaque").disabled = false;
+        document.getElementById("btnSaque").disabled = pontos < pontosMinimos;
+      } catch (err) {
+        console.error("Erro ao carregar dados do usuário:", err);
       }
     }
 
@@ -132,61 +134,64 @@
       const cpf = document.getElementById("cpf").value.trim();
       const chave_pix = document.getElementById("pix").value.trim();
 
-      if (!nome || !cpf || !chave_pix) return alert("Preencha todos os campos");
-
-      const res = await fetch("/api/solicitar-saque", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegram_id, cpf, chave_pix })
-      });
-
-      const json = await res.json();
-
-      if (json.success) {
-        document.getElementById("status").innerText = "✅ Saque solicitado com sucesso!";
-        document.getElementById("formSaque").reset();
-        document.getElementById("btnSaque").disabled = true;
-        document.getElementById("pontos").innerText = "0";
-        document.getElementById("reais").innerText = "R$0,00";
-        document.getElementById("progressBar").style.width = "0%";
-      } else {
-        document.getElementById("status").innerText = "❌ Erro: " + (json.error || "Falha ao solicitar");
-      }
-    });
-
-    carregarDados();
-
-  const telegram_id = new URLSearchParams(window.location.search).get("id");
-
-  async function carregarHistorico() {
-    try {
-      const response = await fetch(`/api/saques?telegram_id=${telegram_id}`);
-      const historico = await response.json();
-
-      const container = document.getElementById("historico");
-      container.innerHTML = "";
-
-      if (historico.length === 0) {
-        container.innerHTML = "<p>Sem solicitação de saque.</p>";
+      if (!nome || !cpf || !chave_pix) {
+        alert("Preencha todos os campos");
         return;
       }
 
-      historico.forEach(saque => {
-        const item = document.createElement("p");
-        const dataFormatada = new Date(saque.data_solicitacao).toLocaleString("pt-BR");
-        item.textContent = `💸 R$${saque.valor_solicitado} - ${saque.status.toUpperCase()} - ${dataFormatada}`;
-        container.appendChild(item);
-      });
+      try {
+        const res = await fetch("/api/solicitar-saque", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id, cpf, chave_pix })
+        });
 
-    } catch (err) {
-      console.error("Erro ao carregar histórico:", err);
-      document.getElementById("historico").innerHTML = "<p>Erro ao carregar histórico.</p>";
+        const json = await res.json();
+
+        if (json.success) {
+          document.getElementById("status").innerText = "✅ Saque solicitado com sucesso!";
+          document.getElementById("formSaque").reset();
+          await carregarDados();
+          await carregarHistorico();
+        } else {
+          document.getElementById("status").innerText = "❌ Erro: " + (json.error || "Falha ao solicitar");
+        }
+      } catch (err) {
+        console.error("Erro no envio de saque:", err);
+        document.getElementById("status").innerText = "❌ Erro de conexão";
+      }
+    });
+
+    async function carregarHistorico() {
+      if (!telegram_id) return;
+
+      try {
+        const response = await fetch(`/api/saques?telegram_id=${telegram_id}`);
+        const historico = await response.json();
+
+        const container = document.getElementById("historico");
+        container.innerHTML = "";
+
+        if (historico.length === 0) {
+          container.innerHTML = "<p>Sem solicitação de saque.</p>";
+          return;
+        }
+
+        historico.forEach(saque => {
+          const item = document.createElement("p");
+          const dataFormatada = new Date(saque.data_solicitacao).toLocaleString("pt-BR");
+          item.textContent = `💸 R$${saque.valor_solicitado} - ${saque.status.toUpperCase()} - ${dataFormatada}`;
+          container.appendChild(item);
+        });
+
+      } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
+        document.getElementById("historico").innerHTML = "<p>Erro ao carregar histórico.</p>";
+      }
     }
-  }
 
-  carregarHistorico();
-</script>
-
-    
+    carregarDados();
+    carregarHistorico();
+  </script>
 </body>
 </html>
