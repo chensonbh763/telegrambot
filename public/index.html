@@ -5,6 +5,8 @@
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.adsonar.io/sdk.js"></script>
+  <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
@@ -14,16 +16,33 @@
       margin: auto;
       padding: 20px;
     }
-    .card, .vip-box, .banner-box {
+    .top-menu {
+      background: #2a8f43;
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+    .top-menu a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .top-menu a:hover {
+      text-decoration: underline;
+    }
+    .card, .vip-box, .ads-box, .banner-box {
       background: white;
       padding: 15px;
       margin: 20px 0;
       border-radius: 8px;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    h2 {
-      color: #2a8f43;
       text-align: center;
     }
     button {
@@ -43,56 +62,76 @@
 </head>
 <body>
 
-  <h2>✅ LUCRE MAIS TASK</h2>
+  <nav class="top-menu">
+    <a href="index.html">🏠 Início</a>
+    <a href="indicacoes.html">👥 Indicações</a>
+    <a href="pontuacao.html">📊 Pontuação</a>
+    <a href="saque.html">💰 Saque</a>
+  </nav>
+
+  <h2>✅ LUCRE MAIS TAREFAS</h2>
 
   <div class="card">
-    <p>📅 Check-in diário: ganhe pontos assistindo anúncio!</p>
-    <button onclick="checkin()">🎁 Fazer check-in</button>
+    <p>- Quer ganhar pontos rapidinho? Assista um vídeo e turbine sua pontuação!</p>
+    <button onclick="checkin()">📺 Ver anúncio e ganhar pontos</button>
+  </div>
+
+  <div class="card">
+    <h3>📢 Missão do dia!</h3>
+    <p>- 🎯 Cada anúncio vale pontos! Assista e chegue mais perto do topo.</p>
+    <button onclick="shareReward()">🔗 Realizar tarefa do dia</button>
   </div>
 
   <div class="vip-box">
     <strong>🎯 Torne-se VIP!</strong><br>
-    Ganhe <b>% da pontuação</b> de todos que usam esse bot.<br><br>
-    <a href="https://www.mfuture.com.br/lucremais/prevenda.html" target="_blank">
+    Ganhe <b>% da pontuação</b> de todos que usam esse bot de tarefas.<br><br>
+    <a href="https://www.mfuture.com.br/lucremais/prevenda.html" target="_blank" rel="noopener noreferrer">
       <button>🚀 Quero ser VIP</button>
     </a>
   </div>
 
-  <div class="card">
-    <h3>📋 Tarefas do Dia</h3>
-    <div id="tarefas">🔄 Carregando tarefas...</div>
+  <h2>✅ Tarefas Gerais</h2>
+  <div id="tarefas">Carregando tarefas...</div>
+
+  <div class="ads-box">
+    <p><strong>🔰 Patrocínio</strong><br>Quer sua marca aqui? Clique em anunciar</p>
+    <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank" rel="noopener noreferrer">
+      <button>📢 Anunciar agora</button>
+    </a>
+    <script>
+      atOptions = {
+        'key': 'f2047e9078f37ab78ad873ab52c5949e',
+        'format': 'iframe',
+        'height': 250,
+        'width': 300,
+        'params': {}
+      };
+    </script>
+    <script src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
 
   <div class="banner-box">
-    <h4>📢 Anúncio</h4>
+    <h3>📢 Publicidade</h3>
     <div id="meu_banner"></div>
   </div>
 
   <script>
-    const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || new URLSearchParams(location.search).get("id");
+    window.Sonar.show({ adUnit: "meu_banner" });
 
-    if (!telegram_id) {
-      document.getElementById("tarefas").innerHTML = "❌ ID do Telegram não encontrado.";
+    const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
+
+    function gerarTarefaIdPorData(prefixo) {
+      return `${prefixo}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
     }
 
-    // Mostrar banner
-    window.Sonar?.show?.({
-      adUnit: "meu_banner",
-      onShow: () => console.log("📢 Banner exibido"),
-      onError: () => console.warn("❌ Erro ao exibir banner")
-    });
-
-    function gerarIdNumerico(prefixo = "") {
-      const date = new Date().toISOString().slice(0,10).replace(/-/g,"");
-      return parseInt(date); // retorna um número como 20250725
-    }
-
-    function checkin() {
+    const checkin = () => {
       if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
-      const tarefa_id = gerarIdNumerico("checkin");
-      window.Sonar?.show({
-        adUnit: "checkin_diario",
+      const tarefa_id = gerarTarefaIdPorData("checkin");
+
+      window.Sonar.show({
+        adUnit: 'checkin_diario',
         loader: true,
+        onStart: () => console.log("Carregando anúncio..."),
         onReward: async () => {
           const res = await fetch("/api/concluir-tarefa", {
             method: "POST",
@@ -101,62 +140,82 @@
           });
 
           const data = await res.json();
-          alert(data.mensagem || data.erro || "⚠️ Erro desconhecido.");
+          if (data.mensagem) {
+            alert("✅ " + data.mensagem);
+          } else if (data.erro) {
+            alert("❌ Erro: " + data.erro + (data.detalhe ? "\n🔎 Detalhe: " + data.detalhe : ""));
+          } else {
+            alert("⚠️ Erro desconhecido.");
+          }
         },
-        onError: () => alert("❌ Erro ao carregar anúncio."),
-        onClose: () => console.log("Anúncio fechado")
+        onError: () => alert("❌ Erro ao carregar anúncio.")
+      });
+    };
+
+    const shareReward = () => {
+      if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
+      const tarefa_id = gerarTarefaIdPorData("missao");
+
+      show_9579151().then(async () => {
+        const res = await fetch("/api/concluir-tarefa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id, tarefa_id, pontos: 1 })
+        });
+
+        const data = await res.json();
+        if (data.mensagem) {
+          alert("✅ " + data.mensagem);
+        } else if (data.erro) {
+          alert("❌ Erro: " + data.erro + (data.detalhe ? "\n🔎 Detalhe: " + data.detalhe : ""));
+        } else {
+          alert("⚠️ Erro desconhecido.");
+        }
+      }).catch(() => {
+        alert("❌ Ocorreu um erro ao exibir o anúncio.");
+      });
+    };
+
+    function mostrarAnuncio(link, tarefa_id, pontos) {
+      if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
+      show_9579151('pop').then(async () => {
+        window.location.href = decodeURIComponent(link);
+        await fetch("/api/concluir-tarefa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id, tarefa_id, pontos })
+        });
+      }).catch(() => {
+        alert("⚠️ Não foi possível exibir o anúncio.");
       });
     }
 
     async function carregarTarefas() {
-      try {
-        const res = await fetch("/api/tarefas");
-        const tarefas = await res.json();
-        const div = document.getElementById("tarefas");
-        div.innerHTML = "";
+      const res = await fetch("/api/tarefas");
+      const tarefas = await res.json();
+      const container = document.getElementById("tarefas");
+      container.innerHTML = "";
 
-        if (tarefas.length === 0) {
-          div.innerHTML = "🎉 Nenhuma tarefa disponível no momento.";
-          return;
-        }
-
-        tarefas.forEach(t => {
-          const el = document.createElement("div");
-          el.className = "card";
-          el.innerHTML = `
-            <strong>${t.titulo}</strong><br>
-            Pontos: ${t.pontos}<br>
-            <button onclick="concluirTarefa(${t.id}, ${t.pontos}, '${encodeURIComponent(t.link)}')">📺 Assistir anúncio</button>
-          `;
-          div.appendChild(el);
-        });
-
-      } catch (err) {
-        console.error("Erro ao carregar tarefas:", err);
-        document.getElementById("tarefas").innerText = "❌ Erro ao carregar tarefas.";
+      if (tarefas.length === 0) {
+        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
+        return;
       }
-    }
 
-    function concluirTarefa(tarefa_id, pontos, link) {
-      if (!telegram_id) return alert("⚠️ ID não encontrado.");
-
-      window.Sonar?.show?.({
-        adUnit: "checkin_diario",
-        onReward: async () => {
-          const res = await fetch("/api/concluir-tarefa", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ telegram_id, tarefa_id, pontos })
-          });
-          const data = await res.json();
-          alert(data.mensagem || data.erro || "⚠️ Erro ao concluir.");
-          window.open(decodeURIComponent(link), "_blank");
-        },
-        onError: () => alert("❌ Anúncio falhou."),
+      tarefas.forEach(t => {
+        const el = document.createElement("div");
+        el.className = "tarefa";
+        el.innerHTML = `
+          <strong>${t.titulo}</strong><br>
+          Pontos: ${t.pontos}<br>
+          <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}', ${t.id}, ${t.pontos})">
+            📺 Assistir anúncio para liberar
+          </button>
+        `;
+        container.appendChild(el);
       });
     }
 
-    if (telegram_id) carregarTarefas();
+    carregarTarefas();
   </script>
 </body>
 </html>
