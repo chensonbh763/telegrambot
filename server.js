@@ -11,23 +11,25 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-// ✅ Checagem de API
+/* 🔹 Rota raiz */
 app.get("/", (req, res) => {
   res.send("🚀 API LucreMaisTask está no ar!");
 });
 
-// 🔹 Listar tarefas ativas
+/* 🔹 Buscar tarefas ativas (gerais) */
 app.get("/api/tarefas", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC");
+    const { rows } = await pool.query(
+      "SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC"
+    );
     res.json(rows);
-  } catch (error) {
-    console.error("Erro ao buscar tarefas:", error.message);
-    res.status(500).json({ erro: "Erro ao listar tarefas", detalhe: error.message });
+  } catch (err) {
+    console.error("Erro ao buscar tarefas:", err);
+    res.status(500).json({ erro: "Erro ao listar tarefas" });
   }
 });
 
-// 🔹 Criar nova tarefa (painel admin)
+/* 🔹 Criar nova tarefa (painel admin) */
 app.post("/admin/tarefa", async (req, res) => {
   const { titulo, link, dia, pontos } = req.body;
   try {
@@ -42,7 +44,7 @@ app.post("/admin/tarefa", async (req, res) => {
   }
 });
 
-// 🔹 Executar comandos SQL (painel admin)
+/* 🔹 Execução de SQL personalizada (painel admin) */
 app.post("/admin/sql", async (req, res) => {
   const { sql } = req.body;
   try {
@@ -54,49 +56,90 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-// 🔹 Concluir tarefa com validação de repetição
+/* 🔹 Concluir tarefa com verificação */
 app.post("/api/concluir-tarefa", async (req, res) => {
   const { telegram_id, tarefa_id, pontos } = req.body;
 
   try {
-    // Verifica se o usuário já concluiu essa tarefa hoje
+    // Valida tipo do tarefa_id
+    const tarefaIdInt = parseInt(tarefa_id);
+    if (isNaN(tarefaIdInt)) {
+      return res.status(400).json({ erro: "ID da tarefa deve ser numérico." });
+    }
+
+    // Já foi concluída hoje?
     const check = await pool.query(
-      `SELECT 1 FROM tarefas_concluidas WHERE telegram_id = $1 AND tarefa_id = $2 AND DATE(data) = CURRENT_DATE`,
-      [telegram_id, tarefa_id]
+      `SELECT 1 FROM tarefas_concluidas 
+       WHERE telegram_id = $1 AND tarefa_id = $2 AND DATE(data) = CURRENT_DATE`,
+      [telegram_id, tarefaIdInt]
     );
 
     if (check.rows.length > 0) {
       return res.status(400).json({ erro: "❌ Essa tarefa já foi concluída hoje." });
     }
 
-    // Registra a tarefa concluída
-    await pool.query(
-      `INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
-       VALUES ($1, $2, $3, NOW())`,
-      [telegram_id, tarefa_id, pontos]
-    );
+    // Registrar conclusão
+    await pool.query(`
+      INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
+      VALUES ($1, $2, $3, NOW())
+    `, [telegram_id, tarefaIdInt, pontos]);
 
-    // Atualiza os pontos e tarefas feitas do usuário
-    await pool.query(
-      `UPDATE usuarios
-       SET pontos = COALESCE(pontos, 0) + $1,
-           tarefas_feitas = COALESCE(tarefas_feitas, 0) + 1
-       WHERE telegram_id = $2`,
-      [pontos, telegram_id]
-    );
+    // Atualizar usuário
+    await pool.query(`
+      UPDATE usuarios
+      SET pontos = COALESCE(pontos, 0) + $1,
+          tarefas_feitas = COALESCE(tarefas_feitas, 0) + 1
+      WHERE telegram_id = $2
+    `, [pontos, telegram_id]);
 
     res.json({ mensagem: "✅ Pontos registrados com sucesso!" });
-
   } catch (err) {
     console.error("Erro ao concluir tarefa:", err.message);
-    res.status(500).json({
-      erro: "Erro ao registrar tarefa",
-      detalhe: err.message
-    });
+    res.status(500).json({ erro: "Erro ao registrar tarefa: " + err.message });
   }
 });
 
-// 🔹 Bot do Telegram
+/* 🔹 Ranking de usuários */
+app.get("/api/ranking", async (req, res) => {
+  try {
+    const rankingTarefas = await pool.query(`
+      SELECT telegram_id, nome, pontos
+      FROM usuarios
+      ORDER BY pontos DESC
+      LIMIT 5
+    `);
+
+    const rankingIndicacoes = await pool.query(`
+      SELECT telegram_id, nome, indicacoes
+      FROM usuarios
+      ORDER BY indicacoes DESC
+      LIMIT 5
+    `);
+
+    res.json({
+      tarefas: rankingTarefas.rows,
+      indicacoes: rankingIndicacoes.rows
+    });
+  } catch (err) {
+    console.error("Erro ao buscar ranking:", err.message);
+    res.status(500).json({ erro: "Erro ao buscar ranking" });
+  }
+});
+
+/* 🔹 Obter dados de um usuário */
+app.get("/api/usuarios/:telegram_id", async (req, res) => {
+  try {
+    const { telegram_id } = req.params;
+    const result = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao buscar usuário" });
+  }
+});
+
+/* 🔹 Telegram Bot (registro e indicação) */
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
@@ -106,33 +149,29 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const nome = msg.from.first_name;
 
   try {
-    // Cadastra usuário se ainda não existe
-    await pool.query(
-      `INSERT INTO usuarios (telegram_id, nome)
-       VALUES ($1, $2)
-       ON CONFLICT (telegram_id) DO NOTHING`,
-      [indicadoId, nome]
-    );
+    await pool.query(`
+      INSERT INTO usuarios (telegram_id, nome)
+      VALUES ($1, $2)
+      ON CONFLICT (telegram_id) DO NOTHING
+    `, [indicadoId, nome]);
 
-    // Registra indicação se for válida
     if (indicadorId && indicadorId !== indicadoId.toString()) {
       const check = await pool.query(
         "SELECT * FROM indicacoes WHERE id_indicado = $1",
         [indicadoId]
       );
 
-      if (check.rowCount === 0) {
+      if (check.rows.length === 0) {
         await pool.query(
           "INSERT INTO indicacoes (id_indicador, id_indicado, data) VALUES ($1, $2, NOW())",
           [indicadorId, indicadoId]
         );
 
-        await pool.query(
-          `UPDATE usuarios
-           SET indicacoes = COALESCE(indicacoes, 0) + 1
-           WHERE telegram_id = $1`,
-          [indicadorId]
-        );
+        await pool.query(`
+          UPDATE usuarios
+          SET indicacoes = COALESCE(indicacoes, 0) + 1
+          WHERE telegram_id = $1
+        `, [indicadorId]);
 
         bot.sendMessage(chatId, "🎉 Indicação registrada com sucesso!");
       } else {
@@ -140,23 +179,24 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       }
     }
 
-    // Resposta padrão
-    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
+    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask!\nClique abaixo para acessar as tarefas do dia:", {
       reply_markup: {
         inline_keyboard: [[
           {
-            text: "📲 Abrir Mini App",
+            text: "📲 Acessar Mini App",
             web_app: { url: `https://web-production-10f9d.up.railway.app?id=${chatId}` }
           }
         ]]
       }
     });
+
   } catch (err) {
     console.error("Erro no bot:", err.message);
-    bot.sendMessage(chatId, `⚠️ Erro no cadastro: ${err.message}`);
+    bot.sendMessage(chatId, `⚠️ Erro: ${err.message}`);
   }
 });
 
+/* 🔹 Inicializar servidor */
 app.listen(PORT, () => {
   console.log(`✅ API e Bot rodando na porta ${PORT}`);
 });
