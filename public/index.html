@@ -120,13 +120,13 @@
 
     const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
 
-    function gerarTarefaIdPorData(prefixo) {
-      return `${prefixo}_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
+    function gerarTarefaIdNumerico() {
+      return Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
     }
 
     const checkin = () => {
       if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
-      const tarefa_id = gerarTarefaIdPorData("checkin");
+      const tarefa_id = gerarTarefaIdNumerico();
 
       window.Sonar.show({
         adUnit: 'checkin_diario',
@@ -154,7 +154,7 @@
 
     const shareReward = () => {
       if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
-      const tarefa_id = gerarTarefaIdPorData("missao");
+      const tarefa_id = gerarTarefaIdNumerico();
 
       show_9579151().then(async () => {
         const res = await fetch("/api/concluir-tarefa", {
