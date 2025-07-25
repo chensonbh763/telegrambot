@@ -4,7 +4,18 @@
   <meta charset="UTF-8" />
   <title>Indicações</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- SDK Telegram -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- SDK Monetag com inApp Interstitial configurado corretamente -->
+  <script 
+    src="https://libtl.com/sdk.js" 
+    data-zone="9579151" 
+    data-sdk="show_9579151" 
+    data-auto="2/0.1/30/5/0">
+  </script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -92,21 +103,6 @@
     <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
   </div>
 
-  <!-- Anúncio Monetag via iframe -->
-  <div class="card">
-    <h3>🔰 Anúncio Patrocinado</h3>
-    <div style="width: 100%; text-align: center;">
-      <iframe 
-        src="https://show.monetag.com/9579151" 
-        style="width: 100%; height: 300px; border: none; overflow: hidden; border-radius: 8px;"
-        scrolling="no" 
-        frameborder="0" 
-        allow="autoplay"
-        sandbox="allow-scripts allow-same-origin allow-popups">
-      </iframe>
-    </div>
-  </div>
-
   <script>
     const tg = window.Telegram.WebApp;
     const telegramID = tg.initDataUnsafe?.user?.id;
@@ -132,4 +128,4 @@
     }
   </script>
 </body>
-    </html>
+</html>
