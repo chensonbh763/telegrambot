@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Ganhe recompensas diárias completando tarefas simples no Telegram. Sistema VIP, pontos, sorteios e mais!">
   <script src="https://cdn.adsonar.io/sdk.js"></script>
   <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
   <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
@@ -71,17 +72,21 @@
 
   <h2>✅ LUCRE MAIS TAREFAS</h2>
 
+  <!-- Banner genérico reutilizável -->
   <div class="card">
-    <p>- Quer ganhar pontos rapidinho? Assista um vídeo e turbine sua pontuação!</p>
-    <button onclick="checkin()">📺 Ver anúncio e ganhar pontos</button>
+    <a href="https://www.exemplo.com/seulink.html" target="_blank" rel="noopener noreferrer">
+      <img src="caminho/para/seu-banner.jpg" alt="Banner promocional" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
+    </a>
   </div>
 
+  <!-- Missão do dia -->
   <div class="card">
     <h3>📢 Missão do dia!</h3>
     <p>- 🎯 Cada anúncio vale pontos! Assista e chegue mais perto do topo.</p>
     <button onclick="shareReward()">🔗 Realizar tarefa do dia</button>
   </div>
 
+  <!-- Promoção VIP -->
   <div class="vip-box">
     <strong>🎯 Torne-se VIP!</strong><br>
     Ganhe <b>% da pontuação</b> de todos que usam esse bot de tarefas.<br><br>
@@ -90,9 +95,11 @@
     </a>
   </div>
 
+  <!-- Lista de tarefas -->
   <h2>✅ Tarefas Gerais</h2>
   <div id="tarefas">Carregando tarefas...</div>
 
+  <!-- Bloco de anúncio -->
   <div class="ads-box">
     <p><strong>🔰 Patrocínio</strong><br>Quer sua marca aqui? Clique em anunciar</p>
     <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank" rel="noopener noreferrer">
@@ -110,13 +117,19 @@
     <script src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
 
+  <!-- Banner Indicador Pro -->
   <div class="banner-box">
     <h3>📢 Publicidade</h3>
-    <div id="meu_banner"></div>
+    <a href="https://www.mfuture.com.br/indicadorpro/index.html?utm_source=miniapp&utm_medium=banner&utm_campaign=telegram" target="_blank" rel="noopener noreferrer">
+      <img src="img/banner-indicadorpro.jpg" alt="Ganhe sem vender" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
+    </a>
   </div>
 
   <script>
-    window.Sonar.show({ adUnit: "meu_banner" });
+    // Evita erro caso Sonar não tenha carregado
+    if (window.Sonar?.show) {
+      window.Sonar.show({ adUnit: "meu_banner" });
+    }
 
     const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
 
@@ -138,12 +151,11 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ telegram_id, tarefa_id, pontos: 1 })
           });
-
           const data = await res.json();
           if (data.mensagem) {
             alert("✅ " + data.mensagem);
           } else if (data.erro) {
-            alert("❌ Erro: " + data.erro + (data.detalhe ? "\n🔎 Detalhe: " + data.detalhe : ""));
+            alert("❌ " + data.erro + (data.detalhe ? "\n🔎 Detalhe: " + data.detalhe : ""));
           } else {
             alert("⚠️ Erro desconhecido.");
           }
@@ -162,12 +174,11 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ telegram_id, tarefa_id, pontos: 1 })
         });
-
         const data = await res.json();
         if (data.mensagem) {
           alert("✅ " + data.mensagem);
         } else if (data.erro) {
-          alert("❌ Erro: " + data.erro + (data.detalhe ? "\n🔎 Detalhe: " + data.detalhe : ""));
+          alert("❌ " + data.erro + (data.detalhe ? "\n🔎 Detalhe: " + data.detalhe : ""));
         } else {
           alert("⚠️ Erro desconhecido.");
         }
@@ -218,4 +229,4 @@
     carregarTarefas();
   </script>
 </body>
-</html>
+  </html>
