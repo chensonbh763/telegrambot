@@ -4,18 +4,7 @@
   <meta charset="UTF-8" />
   <title>Indicações</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <!-- SDK Telegram -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- SDK Monetag com inApp Interstitial configurado corretamente -->
-  <script 
-    src="https://libtl.com/sdk.js" 
-    data-zone="9579151" 
-    data-sdk="show_9579151" 
-    data-auto="2/0.1/30/5/0">
-  </script>
-
   <style>
     body {
       font-family: sans-serif;
@@ -78,6 +67,25 @@
     button:hover {
       background: #1e6e34;
     }
+    .banner {
+      margin: 15px 0;
+    }
+    .banner img {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .ads-area {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .ads-area h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .ads-area a {
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
@@ -89,9 +97,9 @@
     <a href="saque.html">💰 Saque</a>
   </nav>
 
+  <!-- BLOCO PRINCIPAL DE INDICAÇÃO -->
   <div class="card">
     <h2>📢 Convide e concorra!</h2>
-
     <p class="info">
       Indique o bot <strong>LucreMaisTask</strong> para seus amigos e familiares. 
       Cada novo usuário que entrar com seu link acumula pontos e te aproxima de prêmios incríveis no final do mês! 🎁
@@ -103,6 +111,35 @@
     <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
   </div>
 
+  <!-- BLOCOS DE BANNERS PUBLICITÁRIOS -->
+  <div class="banner">
+    <a href="https://www.seusite.com/produto1" target="_blank">
+      <img src="img/banner1.jpg" alt="Banner 1 - Substitua aqui">
+    </a>
+  </div>
+
+  <div class="banner">
+    <a href="https://www.seusite.com/produto2" target="_blank">
+      <img src="img/banner2.jpg" alt="Banner 2 - Substitua aqui">
+    </a>
+  </div>
+
+  <div class="banner">
+    <a href="https://www.seusite.com/produto3" target="_blank">
+      <img src="img/banner3.jpg" alt="Banner 3 - Substitua aqui">
+    </a>
+  </div>
+
+  <!-- ÁREA DE CHAMADA PARA ANUNCIAR -->
+  <div class="ads-area">
+    <h3>📣 Quer anunciar aqui?</h3>
+    <p>Divulgue seu produto, curso ou serviço diretamente dentro do nosso bot!</p>
+    <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank">
+      <button>📢 Anunciar Agora</button>
+    </a>
+  </div>
+
+  <!-- SCRIPT PARA GERAR LINK DE INDICAÇÃO -->
   <script>
     const tg = window.Telegram.WebApp;
     const telegramID = tg.initDataUnsafe?.user?.id;
