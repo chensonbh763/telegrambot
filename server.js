@@ -19,14 +19,33 @@ app.get("/", (req, res) => {
 
 // 🔹 3. Rotas de Tarefas
 app.get("/api/tarefas", async (req, res) => {
+  const { telegram_id } = req.query;
+
   try {
-    const { rows } = await pool.query("SELECT * FROM tarefas WHERE ativa = true ORDER BY id DESC");
+    const tarefasQuery = `
+      SELECT 
+        t.*, 
+        CASE 
+          WHEN tc.telegram_id IS NOT NULL THEN true 
+          ELSE false 
+        END AS concluida
+      FROM tarefas t
+      LEFT JOIN tarefas_concluidas tc 
+        ON t.id = tc.tarefa_id 
+        AND tc.telegram_id = $1 
+        AND DATE(tc.data) = CURRENT_DATE
+      WHERE t.ativa = true
+      ORDER BY t.id DESC
+    `;
+
+    const { rows } = await pool.query(tarefasQuery, [telegram_id]);
     res.json(rows);
   } catch (error) {
     console.error("Erro ao buscar tarefas:", error.message);
     res.status(500).json({ erro: "Erro ao listar tarefas", detalhe: error.message });
   }
 });
+
 
 app.post("/api/concluir-tarefa", async (req, res) => {
   const { telegram_id, tarefa_id, pontos } = req.body;
