@@ -50,7 +50,11 @@ app.get("/api/tarefas", async (req, res) => {
 app.post("/api/concluir-tarefa", async (req, res) => {
   const { telegram_id, tarefa_id, pontos } = req.body;
 
+  // Captura o IP real do usuário
+  const ipReal = (req.headers["x-forwarded-for"] || req.connection.remoteAddress || "0.0.0.0").split(",")[0].trim();
+
   try {
+    // Verifica se a tarefa já foi concluída hoje
     const check = await pool.query(
       `SELECT 1 FROM tarefas_concluidas 
        WHERE telegram_id = $1 AND tarefa_id = $2 AND DATE(data) = CURRENT_DATE`,
@@ -61,12 +65,14 @@ app.post("/api/concluir-tarefa", async (req, res) => {
       return res.status(400).json({ erro: "❌ Essa tarefa já foi concluída hoje." });
     }
 
+    // Registra a conclusão da tarefa
     await pool.query(
       `INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
        VALUES ($1, $2, $3, NOW())`,
       [telegram_id, tarefa_id, pontos]
     );
 
+    // Atualiza os pontos do usuário
     await pool.query(
       `UPDATE usuarios
        SET pontos = COALESCE(pontos, 0) + $1,
@@ -75,7 +81,7 @@ app.post("/api/concluir-tarefa", async (req, res) => {
       [pontos, telegram_id]
     );
 
-    // Verifica se esse usuário foi indicado e o indicador ainda não recebeu os pontos
+    // Verifica se esse usuário foi indicado e se o indicador ainda não recebeu os pontos
     const indicacao = await pool.query(
       `SELECT * FROM indicacoes 
        WHERE id_indicado = $1 AND pontos_ativados = false`,
@@ -85,14 +91,20 @@ app.post("/api/concluir-tarefa", async (req, res) => {
     if (indicacao.rows.length > 0) {
       const indicadorId = indicacao.rows[0].id_indicador;
 
-      // Marca pontos como ativados e dá 5 pontos para o indicador
+      // Atualiza status da indicação
       await pool.query(
-        `UPDATE indicacoes SET pontos_ativados = true WHERE id_indicado = $1`,
-        [telegram_id]
+        `UPDATE indicacoes 
+         SET pontos_ativados = true, ip = $1 
+         WHERE id_indicado = $2`,
+        [ipReal, telegram_id]
       );
 
+      // Recompensa o indicador com 5 pontos
       await pool.query(
-        `UPDATE usuarios SET pontos = COALESCE(pontos, 0) + 5 WHERE telegram_id = $1`,
+        `UPDATE usuarios 
+         SET pontos = COALESCE(pontos, 0) + 5,
+             indicacoes = COALESCE(indicacoes, 0) + 1
+         WHERE telegram_id = $1`,
         [indicadorId]
       );
     }
@@ -107,6 +119,7 @@ app.post("/api/concluir-tarefa", async (req, res) => {
     });
   }
 });
+
 
 
 // 🔹 4. Rotas de Usuário
