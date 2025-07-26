@@ -7,8 +7,8 @@
   <meta name="description" content="Ganhe recompensas diárias completando tarefas simples no Telegram. Sistema VIP, pontos, sorteios e mais!">
   
   <!-- Scripts de anúncios -->
-  <script src='//libtl.com/sdk.js' data-zone='9579151' data-sdk='show_9579151'></script>
-  <!-- Scripts biblioteca do telegram node -->
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
+  <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -71,7 +71,8 @@
     <a href="pontuacao.html">📊 Pontuação</a>
     <a href="saque.html">💰 Saque</a>
   </nav>
-  <!-- Banner Lucre Mais task -->
+
+  <!-- Banner Lucre Mais -->
   <div class="card">
     <a href="https://www.mfuture.com.br/lucremais/prevenda.html" target="_blank" rel="noopener noreferrer">
       <img src="img/lucremaistask.png" alt="Banner promocional" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
@@ -104,22 +105,10 @@
     <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank" rel="noopener noreferrer">
       <button>📢 Anunciar agora</button>
     </a>
-    <h2> </h2>
-    <script>
-      atOptions = {
-        'key': 'f2047e9078f37ab78ad873ab52c5949e',
-        'format': 'iframe',
-        'height': 250,
-        'width': 300,
-        'params': {}
-      };
-    </script>
-    <script src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
 
   <!-- Banner Indicador Pro -->
   <div class="banner-box">
-    
     <a href="https://www.mfuture.com.br/indicadorpro/index.html?utm_source=miniapp&utm_medium=banner&utm_campaign=telegram" target="_blank" rel="noopener noreferrer">
       <img src="img/indicadorpro.png" alt="Ganhe sem vender" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
     </a>
@@ -131,31 +120,6 @@
     function gerarTarefaIdNumerico() {
       return Number(new Date().toISOString().slice(0, 10).replace(/-/g, ''));
     }
-
-    const checkin = () => {
-      if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
-      const tarefa_id = gerarTarefaIdNumerico();
-
-      window.Sonar?.show({
-        adUnit: 'checkin_diario',
-        loader: true,
-        onStart: () => console.log("Carregando anúncio..."),
-        onReward: async () => {
-          const res = await fetch("/api/concluir-tarefa", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ telegram_id, tarefa_id, pontos: 1 })
-          });
-          const data = await res.json();
-          if (data.mensagem) {
-            alert("✅ " + data.mensagem);
-          } else {
-            alert("❌ Erro: " + (data.erro || "Erro desconhecido"));
-          }
-        },
-        onError: () => alert("❌ Erro ao carregar anúncio.")
-      });
-    };
 
     const shareReward = () => {
       if (!telegram_id) return alert("⚠️ ID Telegram não encontrado.");
@@ -196,37 +160,37 @@
     }
 
     async function carregarTarefas() {
-  const res = await fetch(`/api/tarefas?telegram_id=${telegram_id}`);
-  const tarefas = await res.json();
-  const container = document.getElementById("tarefas");
-  container.innerHTML = "";
+      if (!telegram_id) return;
 
-  // FILTRA tarefas não concluídas
-  const tarefasNaoConcluidas = tarefas.filter(t => !t.concluida);
+      const res = await fetch(`/api/tarefas?telegram_id=${telegram_id}`);
+      const tarefas = await res.json();
+      const container = document.getElementById("tarefas");
+      container.innerHTML = "";
 
-  // Limita para no máximo 6 tarefas
-  const tarefasExibir = tarefasNaoConcluidas.slice(0, 6);
+      const tarefasNaoConcluidas = tarefas.filter(t => !t.concluida);
+      const tarefasExibir = tarefasNaoConcluidas.slice(0, 6);
 
-  if (tarefasExibir.length === 0) {
-    container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
-    return;
-  }
+      if (tarefasExibir.length === 0) {
+        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
+        return;
+      }
 
-  tarefasExibir.forEach(t => {
-    const el = document.createElement("div");
-    el.className = "tarefa";
-    el.innerHTML = `
-      <strong>${t.titulo}</strong><br>
-      Pontos: ${t.pontos}<br>
-      <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}', ${t.id}, ${t.pontos})">
-        📺 Assistir anúncio para liberar
-      </button>
-    `;
-    container.appendChild(el);
-  });
-carregarTarefas();
-}
+      tarefasExibir.forEach(t => {
+        const el = document.createElement("div");
+        el.className = "tarefa";
+        el.innerHTML = `
+          <strong>${t.titulo}</strong><br>
+          Pontos: ${t.pontos}<br>
+          <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}', ${t.id}, ${t.pontos})">
+            📺 Assistir anúncio para liberar
+          </button>
+        `;
+        container.appendChild(el);
+      });
+    }
 
+    // ⚠️ Chamada ativada aqui!
+    carregarTarefas();
   </script>
 </body>
 </html>
