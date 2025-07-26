@@ -75,6 +75,28 @@ app.post("/api/concluir-tarefa", async (req, res) => {
       [pontos, telegram_id]
     );
 
+    // Verifica se esse usuário foi indicado e o indicador ainda não recebeu os pontos
+    const indicacao = await pool.query(
+      `SELECT * FROM indicacoes 
+       WHERE id_indicado = $1 AND pontos_ativados = false`,
+      [telegram_id]
+    );
+
+    if (indicacao.rows.length > 0) {
+      const indicadorId = indicacao.rows[0].id_indicador;
+
+      // Marca pontos como ativados e dá 5 pontos para o indicador
+      await pool.query(
+        `UPDATE indicacoes SET pontos_ativados = true WHERE id_indicado = $1`,
+        [telegram_id]
+      );
+
+      await pool.query(
+        `UPDATE usuarios SET pontos = COALESCE(pontos, 0) + 5 WHERE telegram_id = $1`,
+        [indicadorId]
+      );
+    }
+
     res.json({ mensagem: "✅ Pontos registrados com sucesso!" });
 
   } catch (err) {
@@ -85,6 +107,7 @@ app.post("/api/concluir-tarefa", async (req, res) => {
     });
   }
 });
+
 
 // 🔹 4. Rotas de Usuário
 app.get("/api/usuarios/:telegram_id", async (req, res) => {
@@ -226,6 +249,7 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const nome = msg.from.first_name;
 
   try {
+    // Cria usuário se ainda não existir
     await pool.query(
       `INSERT INTO usuarios (telegram_id, nome)
        VALUES ($1, $2)
@@ -233,6 +257,7 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       [indicadoId, nome]
     );
 
+    // Verifica se é indicação válida
     if (indicadorId && indicadorId !== indicadoId.toString()) {
       const check = await pool.query(
         "SELECT * FROM indicacoes WHERE id_indicado = $1",
@@ -240,23 +265,37 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       );
 
       if (check.rowCount === 0) {
-        await pool.query(
-          "INSERT INTO indicacoes (id_indicador, id_indicado, data) VALUES ($1, $2, NOW())",
-          [indicadorId, indicadoId]
+        // ⚠️ IP do usuário (pode ser substituído por IP real se capturado via bot)
+        const ip = msg?.web_app_data?.ip || "0.0.0.0";
+
+        const ipCount = await pool.query(
+          "SELECT COUNT(*) FROM indicacoes WHERE ip = $1",
+          [ip]
         );
 
-        await pool.query(
-          `UPDATE usuarios SET indicacoes = COALESCE(indicacoes, 0) + 1
-           WHERE telegram_id = $1`,
-          [indicadorId]
-        );
+        if (parseInt(ipCount.rows[0].count) >= 3) {
+          bot.sendMessage(chatId, "🚫 Limite de indicações por IP atingido.");
+        } else {
+          await pool.query(
+            `INSERT INTO indicacoes (id_indicador, id_indicado, ip, data, pontos_ativados)
+             VALUES ($1, $2, $3, NOW(), false)`,
+            [indicadorId, indicadoId, ip]
+          );
 
-        bot.sendMessage(chatId, "🎉 Indicação registrada com sucesso!");
+          // Dá 5 pontos para quem foi indicado
+          await pool.query(
+            `UPDATE usuarios SET pontos = COALESCE(pontos, 0) + 5 WHERE telegram_id = $1`,
+            [indicadoId]
+          );
+
+          bot.sendMessage(chatId, "🎉 Indicação registrada! Você ganhou 5 pontos.");
+        }
       } else {
         bot.sendMessage(chatId, "ℹ️ Você já foi indicado anteriormente.");
       }
     }
 
+    // Abertura do Mini App
     bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
       reply_markup: {
         inline_keyboard: [[
@@ -267,11 +306,13 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
         ]]
       }
     });
+
   } catch (err) {
     console.error("Erro no bot:", err.message);
     bot.sendMessage(chatId, `⚠️ Erro no cadastro: ${err.message}`);
   }
 });
+
 
 // 🔹 9. Inicializar servidor
 app.listen(PORT, () => {
