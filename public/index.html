@@ -196,31 +196,36 @@
     }
 
     async function carregarTarefas() {
-      const res = await fetch("/api/tarefas");
-      const tarefas = await res.json();
-      const container = document.getElementById("tarefas");
-      container.innerHTML = "";
+  const res = await fetch(`/api/tarefas?telegram_id=${telegram_id}`);
+  const tarefas = await res.json();
+  const container = document.getElementById("tarefas");
+  container.innerHTML = "";
 
-      if (tarefas.length === 0) {
-        container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
-        return;
-      }
+  // FILTRA tarefas não concluídas
+  const tarefasNaoConcluidas = tarefas.filter(t => !t.concluida);
 
-      tarefas.forEach(t => {
-        const el = document.createElement("div");
-        el.className = "tarefa";
-        el.innerHTML = `
-          <strong>${t.titulo}</strong><br>
-          Pontos: ${t.pontos}<br>
-          <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}', ${t.id}, ${t.pontos})">
-            📺 Assistir anúncio para liberar
-          </button>
-        `;
-        container.appendChild(el);
-      });
-    }
+  // Limita para no máximo 6 tarefas
+  const tarefasExibir = tarefasNaoConcluidas.slice(0, 6);
 
-    carregarTarefas();
+  if (tarefasExibir.length === 0) {
+    container.innerHTML = "<p>🎉 Nenhuma tarefa disponível hoje. Volte em breve!</p>";
+    return;
+  }
+
+  tarefasExibir.forEach(t => {
+    const el = document.createElement("div");
+    el.className = "tarefa";
+    el.innerHTML = `
+      <strong>${t.titulo}</strong><br>
+      Pontos: ${t.pontos}<br>
+      <button onclick="mostrarAnuncio('${encodeURIComponent(t.link)}', ${t.id}, ${t.pontos})">
+        📺 Assistir anúncio para liberar
+      </button>
+    `;
+    container.appendChild(el);
+  });
+}
+
   </script>
 </body>
 </html>
