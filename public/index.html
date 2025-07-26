@@ -7,9 +7,8 @@
   <meta name="description" content="Ganhe recompensas diárias completando tarefas simples no Telegram. Sistema VIP, pontos, sorteios e mais!">
   
   <!-- Scripts de anúncios -->
-  <script src="https://cdn.adsonar.io/sdk.js"></script>
-  <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
-  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
+  <script src='//libtl.com/sdk.js' data-zone='9579151' data-sdk='show_9579151'></script>
+  <!-- Scripts biblioteca do telegram node -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
@@ -72,20 +71,17 @@
     <a href="pontuacao.html">📊 Pontuação</a>
     <a href="saque.html">💰 Saque</a>
   </nav>
-
-  <h2>✅ LUCRE MAIS TAREFAS</h2>
-
-  <!-- Banner promocional -->
+  <!-- Banner Lucre Mais task -->
   <div class="card">
     <a href="https://www.mfuture.com.br/lucremais/prevenda.html" target="_blank" rel="noopener noreferrer">
-      <img src="img/banner-prevenda.jpeg" alt="Banner promocional" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
+      <img src="img/lucremaistask.png" alt="Banner promocional" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
     </a>
   </div>
 
   <!-- Missão do dia -->
   <div class="card">
     <h3>📢 Missão do dia!</h3>
-    <p>- 🎯 Cada anúncio vale pontos! Assista e chegue mais perto do topo.</p>
+    <p>- 🎯 Veja o anúncio abaixo e ganhe pontos.</p>
     <button onclick="shareReward()">🔗 Realizar tarefa do dia</button>
   </div>
 
@@ -108,6 +104,7 @@
     <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank" rel="noopener noreferrer">
       <button>📢 Anunciar agora</button>
     </a>
+    <h2> </h2>
     <script>
       atOptions = {
         'key': 'f2047e9078f37ab78ad873ab52c5949e',
@@ -124,15 +121,11 @@
   <div class="banner-box">
     <h3>📢 Publicidade</h3>
     <a href="https://www.mfuture.com.br/indicadorpro/index.html?utm_source=miniapp&utm_medium=banner&utm_campaign=telegram" target="_blank" rel="noopener noreferrer">
-      <img src="img/banner-indicadorpro.png" alt="Ganhe sem vender" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
+      <img src="img/indicadorpro.png" alt="Ganhe sem vender" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
     </a>
   </div>
 
   <script>
-    if (window.Sonar?.show) {
-      window.Sonar.show({ adUnit: "meu_banner" });
-    }
-
     const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
 
     function gerarTarefaIdNumerico() {
