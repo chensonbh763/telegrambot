@@ -56,6 +56,26 @@
       margin-bottom: 6px;
       font-size: 15px;
     }
+  .status-box {
+    background: #eafbe7;
+    border: 1px solid #b7e4c7;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 15px;
+    color: #155724;
+
+  }
+.ads-box {
+  background: #fff;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
   </style>
 </head>
 <body>
@@ -65,7 +85,9 @@
     <a href="pontuacao.html">📊 Pontuação</a>
     <a href="saque.html">💰 Saque</a>
   </nav>
-
+<div class="status-box" id="statusUsuario">
+  Carregando informações do usuário...
+</div>
   <div class="card">
     <h2>📊 Ranking de Pontuação</h2>
 
@@ -110,6 +132,7 @@
     <script src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
   </div>
   <script>
+const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
     fetch("/api/ranking")
       .then(res => res.json())
       .then(data => {
@@ -131,6 +154,33 @@
       .catch(err => {
         console.error("Erro ao carregar ranking:", err);
       });
+
+  async function carregarStatusUsuario() {
+    if (!telegram_id) return;
+
+    try {
+      const res = await fetch(`/api/usuarios/${telegram_id}`);
+      const user = await res.json();
+
+      if (user.error) {
+        document.getElementById("statusUsuario").innerText = "⚠️ Usuário não encontrado.";
+        return;
+      }
+
+      document.getElementById("statusUsuario").innerHTML = `
+        <strong>🔑 ID:</strong> ${user.telegram_id}<br>
+        <strong>⭐ Pontos:</strong> ${user.pontos}<br>
+        <strong>👥 Indicações:</strong> ${user.indicacoes || 0}
+      `;
+    } catch (err) {
+      console.error("Erro ao carregar status:", err);
+      document.getElementById("statusUsuario").innerText = "❌ Erro ao carregar dados.";
+    }
+  }
+
+  carregarStatusUsuario();
+
+
   </script>
 </body>
       </html>
