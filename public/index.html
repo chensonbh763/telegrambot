@@ -183,7 +183,7 @@
 
       if (typeof show_9579151 === 'function') {
         show_9579151('pop').then(async () => {
-          window.location.href = decodeURIComponent(link);
+          window.open(decodeURIComponent(link), "_blank");
           await fetch("/api/concluir-tarefa", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
