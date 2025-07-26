@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>Pontuação</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.adsonar.io/sdk.js"></script>
+  <script src="https://static.sonartech.io/lib/1.0.0/sonar.js?appId=app_2c944cc4"></script>
+  <script src="//libtl.com/sdk.js" data-zone="9579151" data-sdk="show_9579151"></script>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
@@ -76,7 +79,36 @@
       <li>Carregando...</li>
     </ul>
   </div>
-
+  
+  <div class="card" style="background: #fff8e1; border-left: 6px solid #fbc02d;">
+  <h3>🎁 Prêmios Mensais para os Melhores!</h3>
+  <p>Todo final de mês, os <strong>Top 5 do ranking</strong> por tarefas e indicações vão concorrer a prêmios especiais e bônus em pontos! 💥</p>
+  <ul>
+    <li>🏅 Pontos extras direto na sua conta</li>
+    <li>🎫 Sorteio de Gift Cards, acesso VIP e muito mais</li>
+    <li>📈 Visibilidade no canal oficial como Destaque</li>
+  </ul>
+  <p>🕒 Fique ligado! A pontuação é atualizada frequentemente — você ainda pode entrar para o topo e faturar!</p>
+</div>
+  
+  
+  <!-- Bloco de anúncio -->
+  <div class="ads-box">
+    <p><strong>🔰 Patrocínio</strong><br>Quer sua marca aqui? Clique em anunciar</p>
+    <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank" rel="noopener noreferrer">
+      <button>📢 Anunciar agora</button>
+    </a>
+    <script>
+      atOptions = {
+        'key': 'f2047e9078f37ab78ad873ab52c5949e',
+        'format': 'iframe',
+        'height': 250,
+        'width': 300,
+        'params': {}
+      };
+    </script>
+    <script src="//www.highperformanceformat.com/f2047e9078f37ab78ad873ab52c5949e/invoke.js"></script>
+  </div>
   <script>
     fetch("/api/ranking")
       .then(res => res.json())
@@ -101,4 +133,4 @@
       });
   </script>
 </body>
-</html>
+      </html>
