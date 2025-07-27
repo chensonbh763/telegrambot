@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Tarefas</title>
+  <style>
+    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; max-width: 900px; margin: auto; }
+    nav { margin-bottom: 20px; background: #2a8f43; padding: 10px; border-radius: 8px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 10px; font-weight: bold; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f0f0f0; }
+    button { background: #2a8f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    textarea, input { width: 100%; padding: 8px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="tarefas-adm.html">Tarefas</a>
+    <a href="saques-adm.html">Saques</a>
+    <a href="usuarios-adm.html">Usuários</a>
+    <a href="indicacoes-adm.html">Indicações</a>
+    <a href="config-adm.html">Config</a>
+    <a href="anuncios-adm.html">Anúncios</a>
+  </nav>
+
+  <div class="card">
+    <h2>📋 Lista de Tarefas</h2>
+    <button onclick="carregarTarefas()">🔄 Atualizar</button>
+    <table id="tabelaTarefas">
+      <thead>
+        <tr>
+          <th>ID</th><th>Título</th><th>Pontos</th><th>Ativa</th><th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>➕ Nova Tarefa</h3>
+    <form onsubmit="criarTarefa(); return false;">
+      <input type="text" id="titulo" placeholder="Título" required>
+      <input type="text" id="link" placeholder="Link" required>
+      <input type="number" id="pontos" placeholder="Pontos" required>
+      <input type="number" id="dia" placeholder="Dia (opcional)" min="1">
+      <button type="submit">Criar</button>
+    </form>
+  </div>
+
+  <script>
+    async function carregarTarefas() {
+      const sql = "SELECT * FROM tarefas ORDER BY id DESC";
+      const res = await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+      const data = await res.json();
+      const tbody = document.querySelector("#tabelaTarefas tbody");
+      tbody.innerHTML = "";
+      data.forEach(t => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${t.id}</td>
+            <td>${t.titulo}</td>
+            <td>${t.pontos}</td>
+            <td>${t.ativa ? '✅' : '❌'}</td>
+            <td>
+              <button onclick="desativarTarefa(${t.id})">Desativar</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function desativarTarefa(id) {
+      if (!confirm("Deseja realmente desativar essa tarefa?")) return;
+      const sql = `UPDATE tarefas SET ativa = false WHERE id = ${id}`;
+      await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+      carregarTarefas();
+    }
+
+    async function criarTarefa() {
+      const titulo = document.getElementById("titulo").value;
+      const link = document.getElementById("link").value;
+      const pontos = document.getElementById("pontos").value;
+      const dia = document.getElementById("dia").value || '1';
+
+      const sql = `INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ('${titulo}', '${link}', ${dia}, ${pontos}, true)`;
+      const res = await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+
+      const result = await res.text();
+      alert("Tarefa criada! Atualizando lista...");
+      carregarTarefas();
+    }
+
+    carregarTarefas();
+  </script>
+</body>
+</html>
