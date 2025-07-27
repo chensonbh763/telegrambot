@@ -254,6 +254,7 @@ app.post("/admin/sql", async (req, res) => {
 
 // 🔹 8. Telegram Bot
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const GRUPO_VIP_ID = -1002605364157; // ID do grupo VIP
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -308,17 +309,35 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       }
     }
 
-    // Abertura do Mini App
-    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
-      reply_markup: {
-        inline_keyboard: [[
-          {
-            text: "📲 Abrir Mini App",
-            web_app: { url: `https://web-production-10f9d.up.railway.app?id=${chatId}` }
-          }
-        ]]
+    // Verifica se o usuário está no grupo VIP e atualiza no banco
+try {
+  const member = await bot.getChatMember(GRUPO_VIP_ID, chatId);
+  const status = member?.status;
+
+  const isVip = status === "member" || status === "administrator" || status === "creator";
+
+  await pool.query(
+    "UPDATE usuarios SET vip = $1 WHERE telegram_id = $2",
+    [isVip, chatId]
+  );
+
+} catch (err) {
+  console.error("Erro ao verificar status VIP:", err.message);
+  // Continua sem falhar, apenas loga
+}
+
+// Abertura do Mini App
+bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
+  reply_markup: {
+    inline_keyboard: [[
+      {
+        text: "📲 Abrir Mini App",
+        web_app: { url: `https://web-production-10f9d.up.railway.app?id=${chatId}` }
       }
-    });
+    ]]
+  }
+});
+
 
   } catch (err) {
     console.error("Erro no bot:", err.message);
