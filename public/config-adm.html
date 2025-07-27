@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Configurações</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    nav a {
+      background: #2a8f43;
+      color: white;
+      padding: 10px 16px;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    nav a:hover {
+      background: #1e6e34;
+    }
+    h2 {
+      color: #2a8f43;
+      margin-top: 30px;
+    }
+    .actions button {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      background: #2a8f43;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .actions button:hover {
+      background: #1e6e34;
+    }
+    textarea, pre {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-family: monospace;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    pre {
+      background: #eef;
+      min-height: 100px;
+      max-height: 300px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="tarefas-adm.html">📝 Tarefas</a>
+    <a href="saques-adm.html">💰 Saques</a>
+    <a href="usuarios-adm.html">👤 Usuários</a>
+    <a href="anuncios-adm.html">📢 Anúncios</a>
+    <a href="config-adm.html">⚙️ Configurações</a>
+  </nav>
+
+  <h2>⚙️ Ações Rápidas</h2>
+  <div class="actions">
+    <button onclick="enviarSQL(`DELETE FROM tarefas_concluidas WHERE data < CURRENT_DATE`)">🧹 Limpar tarefas antigas</button>
+    <button onclick="enviarSQL(`UPDATE tarefas_usuario SET expirada = true WHERE validade < CURRENT_DATE`)">📅 Expirar tarefas vencidas</button>
+    <button onclick="enviarSQL(`UPDATE usuarios SET pontos = 0`)">🔁 Zerar pontos de todos os usuários</button>
+    <button onclick="enviarSQL(`DELETE FROM saques WHERE status = 'reprovado'`)">🗑️ Limpar saques reprovados</button>
+    <button onclick="enviarSQL(`UPDATE usuarios SET vip = false`)">🚫 Remover VIP de todos</button>
+  </div>
+
+  <h2>📝 Console SQL Manual</h2>
+  <form onsubmit="executarSQLManual(event)">
+    <textarea id="campoSQL" placeholder="Digite aqui seu comando SQL..."></textarea>
+    <button type="submit">▶️ Executar Comando</button>
+  </form>
+
+  <h2>📤 Resultado</h2>
+  <pre id="resposta">Aguardando comandos...</pre>
+
+  <script>
+    async function enviarSQL(sql) {
+      const res = await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+
+      const text = await res.text();
+      document.getElementById("resposta").textContent = text;
+    }
+
+    function executarSQLManual(event) {
+      event.preventDefault();
+      const sql = document.getElementById("campoSQL").value.trim();
+      if (!sql) return alert("Digite um comando SQL válido.");
+      enviarSQL(sql);
+    }
+  </script>
+
+</body>
+</html>
