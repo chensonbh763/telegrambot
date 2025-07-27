@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Saques</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1, h2 {
+      color: #2a8f43;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      background: #e0f2f1;
+    }
+    button {
+      padding: 6px 10px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .aprovar { background: #4caf50; color: white; }
+    .reprovar { background: #f44336; color: white; }
+    nav a {
+      margin-right: 15px;
+      font-weight: bold;
+      color: #2a8f43;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="tarefas-adm.html">📋 Tarefas</a>
+    <a href="saques-adm.html">💰 Saques</a>
+    <a href="usuarios-adm.html">👤 Usuários</a>
+    <a href="anuncios-adm.html">📢 Anúncios</a>
+    <a href="config-adm.html">⚙️ Configurações</a>
+  </nav>
+
+  <h1>💰 Gerenciar Saques Pendentes</h1>
+  <table id="tabela-saques">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Usuário</th>
+        <th>Pix</th>
+        <th>CPF</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="7">Carregando...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    async function carregarSaques() {
+      const sql = `SELECT * FROM saques WHERE status = 'pendente' ORDER BY data_solicitacao DESC`;
+      const res = await fetch('/admin/sql', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ sql })
+      });
+      const data = await res.json();
+
+      const tbody = document.querySelector("#tabela-saques tbody");
+      tbody.innerHTML = "";
+
+      data.forEach(saque => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${saque.id}</td>
+          <td>${saque.telegram_id}</td>
+          <td>${saque.chave_pix}</td>
+          <td>${saque.cpf}</td>
+          <td>R$ ${Number(saque.valor_solicitado).toFixed(2)}</td>
+          <td>${saque.status}</td>
+          <td>
+            <button class="aprovar" onclick="atualizarStatus(${saque.id}, 'aprovado')">Aprovar</button>
+            <button class="reprovar" onclick="atualizarStatus(${saque.id}, 'reprovado')">Reprovar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function atualizarStatus(id, status) {
+      const sql = `UPDATE saques SET status = '${status}', data_aprovacao = NOW() WHERE id = ${id}`;
+      const res = await fetch('/admin/sql', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ sql })
+      });
+      await carregarSaques();
+    }
+
+    carregarSaques();
+  </script>
+</body>
+</html>
