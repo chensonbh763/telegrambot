@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Indicações</title>
+  <style>
+    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; max-width: 1000px; margin: auto; }
+    nav { margin-bottom: 20px; background: #2a8f43; padding: 10px; border-radius: 8px; text-align: center; }
+    nav a { color: white; text-decoration: none; margin: 10px; font-weight: bold; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; font-size: 14px; }
+    th { background: #f0f0f0; }
+    button { background: #2a8f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin: 2px; }
+    textarea { width: 100%; padding: 10px; margin-top: 10px; height: 80px; }
+    pre { background: #000; color: #0f0; padding: 10px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="tarefas-adm.html">Tarefas</a>
+    <a href="saques-adm.html">Saques</a>
+    <a href="usuarios-adm.html">Usuários</a>
+    <a href="indicacoes-adm.html">Indicações</a>
+    <a href="config-adm.html">Config</a>
+    <a href="anuncios-adm.html">Anúncios</a>
+  </nav>
+
+  <div class="card">
+    <h2>📣 Lista de Indicações</h2>
+    <button onclick="carregarIndicacoes()">🔄 Atualizar</button>
+    <table id="tabelaIndicacoes">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Indicador</th>
+          <th>Indicado</th>
+          <th>Data</th>
+          <th>IP</th>
+          <th>Ativado?</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>💻 Executar Comando SQL</h3>
+    <form onsubmit="executarSQL(); return false;">
+      <textarea id="comandoSQL" placeholder="Digite seu SQL aqui..."></textarea>
+      <button type="submit">▶️ Executar</button>
+    </form>
+    <h4>📦 Resultado:</h4>
+    <pre id="resultadoSQL">Aguardando...</pre>
+  </div>
+
+  <script>
+    async function carregarIndicacoes() {
+      const sql = "SELECT * FROM indicacoes ORDER BY data DESC";
+      const res = await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+      const data = await res.json();
+      const tbody = document.querySelector("#tabelaIndicacoes tbody");
+      tbody.innerHTML = "";
+      data.forEach(i => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${i.id}</td>
+            <td>${i.id_indicador}</td>
+            <td>${i.id_indicado}</td>
+            <td>${new Date(i.data).toLocaleString()}</td>
+            <td>${i.ip}</td>
+            <td>${i.pontos_ativados ? '✅' : '❌'}</td>
+            <td>
+              <button onclick="deletarIndicacao(${i.id})">🗑️ Excluir</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function deletarIndicacao(id) {
+      if (!confirm("Tem certeza que deseja excluir essa indicação?")) return;
+      const sql = `DELETE FROM indicacoes WHERE id = ${id}`;
+      await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+      carregarIndicacoes();
+    }
+
+    async function executarSQL() {
+      const sql = document.getElementById("comandoSQL").value;
+      const res = await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+
+      const txt = await res.text();
+      document.getElementById("resultadoSQL").textContent = txt;
+    }
+
+    carregarIndicacoes();
+  </script>
+</body>
+</html>
