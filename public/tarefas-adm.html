@@ -5,18 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Tarefas</title>
   <style>
-    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; max-width: 900px; margin: auto; }
+    body { font-family: sans-serif; background: #f9f9f9; padding: 20px; max-width: 1000px; margin: auto; }
     nav { margin-bottom: 20px; background: #2a8f43; padding: 10px; border-radius: 8px; text-align: center; }
     nav a { color: white; text-decoration: none; margin: 10px; font-weight: bold; }
     .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 8px; border-bottom: 1px solid #ddd; text-align: left; }
     th { background: #f0f0f0; }
-    button { background: #2a8f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+    button { background: #2a8f43; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin: 2px; }
     textarea, input { width: 100%; padding: 8px; margin-top: 10px; }
+    .edit-inputs input { margin-bottom: 5px; }
   </style>
 </head>
 <body>
+
   <nav>
     <a href="tarefas-adm.html">Tarefas</a>
     <a href="saques-adm.html">Saques</a>
@@ -50,6 +52,19 @@
     </form>
   </div>
 
+  <div class="card" style="display:none;" id="edicaoBox">
+    <h3>✏️ Editar Tarefa</h3>
+    <div class="edit-inputs">
+      <input type="hidden" id="edit_id">
+      <input type="text" id="edit_titulo" placeholder="Novo Título">
+      <input type="text" id="edit_link" placeholder="Novo Link">
+      <input type="number" id="edit_pontos" placeholder="Novo Pontos">
+      <label><input type="checkbox" id="edit_ativa"> Ativa</label>
+      <button onclick="salvarEdicao()">💾 Salvar</button>
+      <button onclick="cancelarEdicao()" style="background:#999;">Cancelar</button>
+    </div>
+  </div>
+
   <script>
     async function carregarTarefas() {
       const sql = "SELECT * FROM tarefas ORDER BY id DESC";
@@ -69,7 +84,8 @@
             <td>${t.pontos}</td>
             <td>${t.ativa ? '✅' : '❌'}</td>
             <td>
-              <button onclick="desativarTarefa(${t.id})">Desativar</button>
+              <button onclick="editarTarefa(${t.id}, \`${t.titulo}\`, \`${t.link}\`, ${t.pontos}, ${t.ativa})">✏️ Editar</button>
+              <button onclick="desativarTarefa(${t.id})">❌ Desativar</button>
             </td>
           </tr>
         `;
@@ -94,14 +110,46 @@
       const dia = document.getElementById("dia").value || '1';
 
       const sql = `INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ('${titulo}', '${link}', ${dia}, ${pontos}, true)`;
-      const res = await fetch("/admin/sql", {
+      await fetch("/admin/sql", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql })
       });
 
-      const result = await res.text();
-      alert("Tarefa criada! Atualizando lista...");
+      alert("Tarefa criada!");
+      carregarTarefas();
+    }
+
+    function editarTarefa(id, titulo, link, pontos, ativa) {
+      document.getElementById("edit_id").value = id;
+      document.getElementById("edit_titulo").value = titulo;
+      document.getElementById("edit_link").value = link;
+      document.getElementById("edit_pontos").value = pontos;
+      document.getElementById("edit_ativa").checked = ativa;
+      document.getElementById("edicaoBox").style.display = "block";
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function cancelarEdicao() {
+      document.getElementById("edicaoBox").style.display = "none";
+    }
+
+    async function salvarEdicao() {
+      const id = document.getElementById("edit_id").value;
+      const titulo = document.getElementById("edit_titulo").value;
+      const link = document.getElementById("edit_link").value;
+      const pontos = document.getElementById("edit_pontos").value;
+      const ativa = document.getElementById("edit_ativa").checked;
+
+      const sql = `UPDATE tarefas SET titulo='${titulo}', link='${link}', pontos=${pontos}, ativa=${ativa} WHERE id=${id}`;
+      await fetch("/admin/sql", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql })
+      });
+
+      alert("Tarefa atualizada!");
+      cancelarEdicao();
       carregarTarefas();
     }
 
