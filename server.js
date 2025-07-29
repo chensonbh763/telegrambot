@@ -120,6 +120,73 @@ app.post("/api/concluir-tarefa", async (req, res) => {
   }
 });
 
+app.post("/api/roleta/girar", async (req, res) => {
+  const { telegram_id, premio_id } = req.body;
+
+  const premios = {
+    1: { tipo: "pontos", valor: 5 },
+    2: { tipo: "pontos", valor: 10 },
+    3: { tipo: "video", valor: 0 },
+    4: { tipo: "nada", valor: 0 },
+    5: { tipo: "pontos", valor: 15 },
+    6: { tipo: "pontos", valor: 5 },
+    7: { tipo: "pontos", valor: 10 },
+    8: { tipo: "gire_novamente", valor: 0 },
+    9: { tipo: "video", valor: 0 },
+    10: { tipo: "desconto_vip", valor: 0 }
+  };
+
+  try {
+    const premio = premios[premio_id];
+    if (!premio) return res.status(400).json({ erro: "Prêmio inválido." });
+
+    // Verifica se usuário existe
+    const userRes = await pool.query("SELECT * FROM usuarios WHERE telegram_id = $1", [telegram_id]);
+    if (userRes.rows.length === 0) return res.status(404).json({ erro: "Usuário não encontrado." });
+
+    const user = userRes.rows[0];
+
+    // Verifica se é VIP e se já girou grátis hoje
+    let usouTicketGratuito = false;
+    const vip = user.vip;
+
+    if (vip) {
+      const giroHoje = await pool.query(
+        `SELECT 1 FROM roleta_giros 
+         WHERE telegram_id = $1 AND DATE(data) = CURRENT_DATE`,
+        [telegram_id]
+      );
+      if (giroHoje.rows.length === 0) {
+        usouTicketGratuito = true;
+      }
+    }
+
+    // Se não usou ticket gratuito, cobra 10 pontos
+    if (!usouTicketGratuito) {
+      if (user.pontos < 10) {
+        return res.status(400).json({ erro: "Pontos insuficientes para girar (mínimo 10)." });
+      }
+
+      await pool.query("UPDATE usuarios SET pontos = pontos - 10 WHERE telegram_id = $1", [telegram_id]);
+    }
+
+    // Aplica o prêmio
+    if (premio.tipo === "pontos") {
+      await pool.query("UPDATE usuarios SET pontos = pontos + $1 WHERE telegram_id = $2", [premio.valor, telegram_id]);
+    }
+
+    // Registra o giro
+    await pool.query(
+      "INSERT INTO roleta_giros (telegram_id, premio) VALUES ($1, $2)",
+      [telegram_id, premios[premio_id].tipo]
+    );
+
+    res.json({ mensagem: "Giro registrado", premio: premios[premio_id].tipo });
+  } catch (err) {
+    console.error("Erro ao girar roleta:", err.message);
+    res.status(500).json({ erro: "Erro interno no servidor." });
+  }
+});
 
 
 // 🔹 4. Rotas de Usuário
