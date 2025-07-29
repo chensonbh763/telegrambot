@@ -187,7 +187,23 @@ app.post("/api/roleta/girar", async (req, res) => {
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
 });
+app.get("/api/roleta/hoje", async (req, res) => {
+  const { telegram_id } = req.query;
+  const check = await pool.query(
+    "SELECT 1 FROM roleta_giros WHERE telegram_id = $1 AND DATE(data) = CURRENT_DATE",
+    [telegram_id]
+  );
+  res.json({ girou: check.rows.length > 0 });
+});
 
+app.get("/api/roleta/historico", async (req, res) => {
+  const { telegram_id } = req.query;
+  const { rows } = await pool.query(
+    "SELECT premio, data FROM roleta_giros WHERE telegram_id = $1 ORDER BY data DESC LIMIT 10",
+    [telegram_id]
+  );
+  res.json(rows);
+});
 
 // 🔹 4. Rotas de Usuário
 app.get("/api/usuarios/:telegram_id", async (req, res) => {
