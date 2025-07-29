@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Roleta de Prêmios</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border: 10px solid #333;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slice {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+      background: #FFD700;
+      color: #333;
+      text-align: center;
+      line-height: 140px;
+      font-weight: bold;
+    }
+
+    #pointer {
+      margin-top: 20px;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid red;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="wheel"></div>
+  <div id="pointer"></div>
+  <button onclick="spin()">Girar</button>
+  <p id="result"></p>
+
+  <script>
+    const prizes = [
+      "TV", "Celular", "Fone", "Camiseta", "R$100", 
+      "Bicicleta", "Caneca", "Livro", "R$50", "Nada"
+    ];
+
+    const wheel = document.getElementById("wheel");
+    const sliceAngle = 360 / prizes.length;
+
+    prizes.forEach((prize, i) => {
+      const slice = document.createElement("div");
+      slice.className = "slice";
+      slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
+      slice.innerText = prize;
+      wheel.appendChild(slice);
+    });
+
+    function spin() {
+      const rotation = 3600 + Math.random() * 360;
+      wheel.style.transition = "transform 4s ease-out";
+      wheel.style.transform = `rotate(${rotation}deg)`;
+
+      const selected = Math.floor(((rotation % 360) / sliceAngle)) % prizes.length;
+      setTimeout(() => {
+        document.getElementById("result").innerText = `Você ganhou: ${prizes[selected]}!`;
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
