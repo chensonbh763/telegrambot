@@ -2,24 +2,25 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
+  <title>🎰 Roleta da Sorte - LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Roleta da Sorte</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: sans-serif;
-      background: #f9f9f9;
+      font-family: 'Inter', sans-serif;
+      background: #f0f0f0;
+      margin: 0;
       padding: 20px;
+      color: #222;
       max-width: 600px;
       margin: auto;
-      text-align: center;
-      color: #333;
     }
 
     nav {
       background: #2a8f43;
       padding: 10px;
       border-radius: 10px;
+      text-align: center;
       margin-bottom: 20px;
     }
 
@@ -28,38 +29,55 @@
       text-decoration: none;
       margin: 0 10px;
       font-weight: bold;
+      font-size: 15px;
     }
 
-    .roleta-box {
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
+    h1 {
+      text-align: center;
       color: #2a8f43;
-      margin-bottom: 10px;
+      font-size: 22px;
+      margin-top: 10px;
     }
 
-    #roleta {
-      width: 260px;
-      height: 260px;
+    .descricao {
+      text-align: center;
+      font-size: 15px;
+      margin: 10px 0 15px;
+    }
+
+    .status {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    #wheel {
+      width: 300px;
+      height: 300px;
+      border: 8px solid #2a8f43;
       border-radius: 50%;
-      border: 10px solid #2a8f43;
-      margin: 20px auto;
       position: relative;
+      margin: 20px auto;
       overflow: hidden;
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
     }
 
-    .fatia {
+    .slice {
+      position: absolute;
       width: 50%;
       height: 50%;
-      position: absolute;
       transform-origin: 100% 100%;
     }
 
-    #ponteiro {
+    .slice:nth-child(even) {
+      background: #c5e1c4;
+    }
+
+    .slice:nth-child(odd) {
+      background: #a5d6a7;
+    }
+
+    #pointer {
       width: 0;
       height: 0;
       border-left: 20px solid transparent;
@@ -69,156 +87,90 @@
     }
 
     button {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 24px;
+      font-size: 16px;
       background: #2a8f43;
       color: white;
-      padding: 12px 24px;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 6px;
+      font-weight: bold;
       cursor: pointer;
     }
 
-    #mensagem {
-      margin-top: 20px;
+    #result {
+      text-align: center;
       font-size: 18px;
       font-weight: bold;
-      color: #155724;
+      margin-top: 15px;
+      color: #2a8f43;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e6f5e9;
+      color: #2a8f43;
     }
 
     canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 999;
-    }
-
-    .info {
-      font-size: 15px;
-      margin-top: 10px;
-      color: #555;
+      display: none;
     }
   </style>
 </head>
 <body>
+
   <nav>
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
     <a href="pontuacao.html">📊 Pontuação</a>
-    <a href="saque.html">💰 Saques</a>
+    <a href="saque.html">💰 Saque</a>
   </nav>
 
-  <div class="roleta-box">
-    <h2>🎡 Roleta da Sorte</h2>
-    <p class="info">VIPs têm 1 giro grátis por dia.<br>Outros usuários podem usar 10 pontos por giro.</p>
+  <h1>🎰 Roleta da Sorte</h1>
+  <p class="descricao">
+    VIPs têm <strong>1 giro grátis por dia</strong>!<br>
+    Também é possível girar usando seus pontos.
+  </p>
 
-    <div id="ponteiro"></div>
-    <div id="roleta"></div>
-
-    <button id="girarBtn" onclick="girarRoleta()">🎯 Girar</button>
-
-    <div id="mensagem"></div>
+  <div class="status">
+    Tickets disponíveis: <strong>1</strong> | Pontos: <strong>100</strong>
   </div>
 
-  <canvas id="confetti"></canvas>
+  <div id="wheel"></div>
+  <div id="pointer"></div>
+  <button onclick="spin()">🎯 Girar</button>
+  <p id="result"></p>
 
-  <script>
-    const telegram_id = Telegram.WebApp.initDataUnsafe?.user?.id;
+  <table>
+    <thead>
+      <tr><th>Número</th><th>Prêmio</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td>5 pontos</td></tr>
+      <tr><td>2</td><td>10 pontos</td></tr>
+      <tr><td>3</td><td>Veja vídeo e ganhei</td></tr>
+      <tr><td>4</td><td>Tente outra vez</td></tr>
+      <tr><td>5</td><td>15 pontos</td></tr>
+      <tr><td>6</td><td>5 pontos</td></tr>
+      <tr><td>7</td><td>10 pontos</td></tr>
+      <tr><td>8</td><td>Gire denovo</td></tr>
+      <tr><td>9</td><td>Veja vídeo e ganhei</td></tr>
+      <tr><td>10</td><td>Desconto no VIP</td></tr>
+    </tbody>
+  </table>
 
-    const premios = [
-      "5 pontos", "10 pontos", "Veja vídeo e ganhei",
-      "Tente outra vez", "15 pontos", "5 pontos",
-      "10 pontos", "Gire denovo", "Veja vídeo e ganhei", "Desconto no VIP"
-    ];
-
-    const roleta = document.getElementById("roleta");
-
-    const anguloFatia = 360 / premios.length;
-
-    // Criar as fatias visualmente
-    premios.forEach((p, i) => {
-      const div = document.createElement("div");
-      div.className = "fatia";
-      div.style.background = i % 2 === 0 ? "#a5d6a7" : "#81c784";
-      div.style.transform = `rotate(${i * anguloFatia}deg) skewY(-60deg)`;
-      roleta.appendChild(div);
-    });
-
-    function girarRoleta() {
-      if (!telegram_id) {
-        alert("Telegram ID não encontrado.");
-        return;
-      }
-
-      const botao = document.getElementById("girarBtn");
-      botao.disabled = true;
-      botao.innerText = "⏳ Girando...";
-
-      fetch("/api/roleta/girar", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ telegram_id })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.erro) {
-          botao.disabled = false;
-          botao.innerText = "🎯 Girar";
-          alert("⚠️ " + data.erro);
-          return;
-        }
-
-        const index = premios.indexOf(data.premio.texto);
-        const rotacao = 360 * 5 + (360 - (index * anguloFatia)) - anguloFatia / 2;
-
-        roleta.style.transition = "transform 4s ease-out";
-        roleta.style.transform = `rotate(${rotacao}deg)`;
-
-        setTimeout(() => {
-          document.getElementById("mensagem").innerText = `🎁 Você ganhou: ${data.premio.texto}`;
-          soltarConfete();
-          botao.disabled = false;
-          botao.innerText = "🎯 Girar";
-        }, 4000);
-      })
-      .catch(() => {
-        alert("Erro ao girar roleta.");
-        botao.disabled = false;
-        botao.innerText = "🎯 Girar";
-      });
-    }
-
-    function soltarConfete() {
-      const canvas = document.getElementById('confetti');
-      const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-
-      const confettis = Array.from({ length: 150 }, () => ({
-        x: Math.random() * canvas.width,
-        y: -10,
-        r: Math.random() * 5 + 2,
-        d: Math.random() * 10 + 2,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-      }));
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confettis.forEach(c => {
-          ctx.beginPath();
-          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
-          ctx.fillStyle = c.color;
-          ctx.fill();
-          c.y += c.d;
-        });
-      }
-
-      let interval = setInterval(draw, 30);
-      setTimeout(() => {
-        clearInterval(interval);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }, 4000);
-    }
-  </script>
 </body>
-</html>
+    </html>
