@@ -9,16 +9,18 @@
       flex-direction: column;
       align-items: center;
       font-family: sans-serif;
-      background: #f0f0f0;
+      background: #000; /* fundo preto */
+      color: #FFD700; /* amarelo */
     }
 
     #wheel {
       width: 300px;
       height: 300px;
-      border: 10px solid #333;
+      border: 8px solid turquoise; /* borda turquesa */
       border-radius: 50%;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 0 20px teal;
     }
 
     .slice {
@@ -26,11 +28,15 @@
       width: 50%;
       height: 50%;
       transform-origin: 100% 100%;
-      background: #FFD700;
-      color: #333;
+      background: teal;
+      color: #FFD700;
       text-align: center;
       line-height: 140px;
       font-weight: bold;
+    }
+
+    .slice:nth-child(even) {
+      background: darkgreen;
     }
 
     #pointer {
@@ -39,26 +45,38 @@
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-bottom: 30px solid red;
+      border-bottom: 30px solid #FFD700; /* amarelo */
     }
 
     button {
       margin-top: 20px;
       padding: 10px 20px;
       font-size: 16px;
+      background-color: turquoise;
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div id="wheel"></div>
   <div id="pointer"></div>
-  <button onclick="spin()">Girar</button>
+  <button onclick="spin()">GIRAR</button>
   <p id="result"></p>
 
   <script>
     const prizes = [
-      "TV", "Celular", "Fone", "Camiseta", "R$100", 
-      "Bicicleta", "Caneca", "Livro", "R$50", "Nada"
+      "5 pontos", "10 pontos", "Veja vídeo e ganhe", "Tente outra vez", "5 pontos",
+      "10 pontos", "Desconto no vip", "Gire denovo", "Veja vídeo e Ganhe", "15 pontos"
     ];
 
     const wheel = document.getElementById("wheel");
