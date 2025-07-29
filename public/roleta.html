@@ -126,7 +126,28 @@
     }
 
     canvas {
-      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    #historico {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 30px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    #historico ul {
+      padding-left: 20px;
+    }
+
+    #historico li {
+      margin-bottom: 6px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -146,13 +167,13 @@
   </p>
 
   <div class="card" id="saldo">
-  <p><strong>🎟️ Tickets disponíveis:</strong> <span id="tickets">Carregando...</span></p>
-  <p><strong>⭐ Pontos:</strong> <span id="pontos">Carregando...</span></p>
+    <p><strong>🎟️ Tickets disponíveis:</strong> <span id="tickets">Carregando...</span></p>
+    <p><strong>⭐ Pontos:</strong> <span id="pontos">Carregando...</span></p>
   </div>
 
   <div id="wheel"></div>
   <div id="pointer"></div>
-  <button onclick="spin()">🎯 Girar</button>
+  <button id="btnGirar" onclick="spin()">🎯 Girar</button>
   <p id="result"></p>
 
   <table>
@@ -172,137 +193,166 @@
       <tr><td>10</td><td>Desconto no VIP</td></tr>
     </tbody>
   </table>
-<div class="card" id="historico">
-  <h3>📜 Histórico de Giros</h3>
-  <ul id="listaGiros">
-    <li>Carregando histórico...</li>
-  </ul>
-                       </div>
-</body>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script>
-  const telegram_id = window.Telegram.WebApp?.initDataUnsafe?.user?.id;
-  const sliceAngle = 360 / 10;
-  const prizes = {
-    1: "5 pontos",
-    2: "10 pontos",
-    3: "Veja vídeo e ganhei",
-    4: "Tente outra vez",
-    5: "15 pontos",
-    6: "5 pontos",
-    7: "10 pontos",
-    8: "Gire denovo",
-    9: "Veja vídeo e ganhei",
-    10: "Desconto no VIP"
-  };
+  <div class="card" id="historico">
+    <h3>📜 Histórico de Giros</h3>
+    <ul id="listaGiros">
+      <li>Carregando histórico...</li>
+    </ul>
+  </div>
 
-  const wheel = document.getElementById("wheel");
+  <canvas id="confetti"></canvas>
 
-  // Cria as 10 fatias
-  for (let i = 0; i < 10; i++) {
-    const slice = document.createElement("div");
-    slice.className = "slice";
-    slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
-    wheel.appendChild(slice);
-  }
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+    const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const sliceAngle = 360 / 10;
+    const prizes = {
+      1: "5 pontos",
+      2: "10 pontos",
+      3: "Veja vídeo e ganhei",
+      4: "Tente outra vez",
+      5: "15 pontos",
+      6: "5 pontos",
+      7: "10 pontos",
+      8: "Gire denovo",
+      9: "Veja vídeo e ganhei",
+      10: "Desconto no VIP"
+    };
 
-  // Gira a roleta
-  async function spin() {
-    if (!telegram_id) {
-      alert("❌ Erro: Telegram ID não encontrado.");
-      return;
+    const wheel = document.getElementById("wheel");
+
+    for (let i = 0; i < 10; i++) {
+      const slice = document.createElement("div");
+      slice.className = "slice";
+      slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
+      wheel.appendChild(slice);
     }
 
-    try {
-      // Gira visual
-      const rotation = 3600 + Math.random() * 360;
-      wheel.style.transition = "transform 4s ease-out";
-      wheel.style.transform = `rotate(${rotation}deg)`;
+    async function spin() {
+      const btn = document.getElementById("btnGirar");
+      btn.disabled = true;
 
-      const selected = Math.floor(((rotation % 360) / sliceAngle)) % 10 + 1;
+      try {
+        const rotation = 3600 + Math.random() * 360;
+        wheel.style.transition = "transform 4s ease-out";
+        wheel.style.transform = `rotate(${rotation}deg)`;
 
-      // Espera rotação
-      setTimeout(async () => {
+        const selected = Math.floor(((rotation % 360) / sliceAngle)) % 10 + 1;
         const resultado = prizes[selected];
 
-        // Exibe resultado na tela
-        document.getElementById("result").innerText =
-          `🎁 Resultado: ${resultado}`;
+        setTimeout(async () => {
+          document.getElementById("result").innerText = `🎁 Resultado: ${resultado}`;
 
-        // Envia para o backend
-        const res = await fetch("/api/roleta/girar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegram_id, premio_id: selected })
-        });
+          const res = await fetch("/api/roleta/girar", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ telegram_id, premio: selected })
+          });
 
+          const data = await res.json();
+
+          if (!res.ok) {
+            alert("Erro ao girar: " + (data?.erro || "Falha desconhecida"));
+            btn.disabled = false;
+            return;
+          }
+
+          startConfetti();
+          carregarSaldo();
+          carregarHistorico();
+
+          alert(`🎉 ${resultado}`);
+          btn.disabled = false;
+        }, 4000);
+      } catch (err) {
+        alert("⚠️ Erro ao girar.");
+        console.error(err);
+        btn.disabled = false;
+      }
+    }
+
+    async function carregarSaldo() {
+      try {
+        const res = await fetch(`/api/usuarios/${telegram_id}`);
+        const user = await res.json();
+
+        document.getElementById("pontos").innerText = user.pontos || 0;
+
+        let tickets = 0;
+        if (user.vip) {
+          const giroRes = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
+          const girouHoje = await giroRes.json();
+          tickets = girouHoje.girou ? 0 : 1;
+        }
+
+        document.getElementById("tickets").innerText = tickets;
+      } catch (err) {
+        console.error("Erro ao carregar saldo:", err);
+        document.getElementById("tickets").innerText = "Erro";
+        document.getElementById("pontos").innerText = "Erro";
+      }
+    }
+
+    async function carregarHistorico() {
+      try {
+        const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
         const data = await res.json();
+        const lista = document.getElementById("listaGiros");
+        lista.innerHTML = "";
 
-        if (!res.ok) {
-          alert("Erro ao girar: " + (data?.erro || "Falha desconhecida"));
-          console.error("Erro no backend:", data);
+        if (data.length === 0) {
+          lista.innerHTML = "<li>Nenhum giro registrado ainda.</li>";
           return;
         }
 
-        alert(`🎉 ${resultado}`);
-      }, 4000);
-    } catch (err) {
-      alert("⚠️ Ocorreu um erro inesperado ao girar.");
-      console.error("Erro no spin():", err);
-    }
-  }
-
-const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-
-async function carregarSaldo() {
-  try {
-    const res = await fetch(`/api/usuarios/${telegram_id}`);
-    const user = await res.json();
-
-    document.getElementById("pontos").innerText = user.pontos || 0;
-
-    // Verifica se já girou grátis hoje
-    let tickets = 0;
-    if (user.vip) {
-      const giroRes = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
-      const girouHoje = await giroRes.json();
-      tickets = girouHoje.girou ? 0 : 1;
+        data.forEach(g => {
+          const item = document.createElement("li");
+          item.innerText = `🎯 ${g.premio} — ${new Date(g.data).toLocaleString()}`;
+          lista.appendChild(item);
+        });
+      } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
+        document.getElementById("listaGiros").innerHTML = "<li>Erro ao carregar.</li>";
+      }
     }
 
-    document.getElementById("tickets").innerText = tickets;
-  } catch (err) {
-    console.error("Erro ao carregar saldo:", err);
-    document.getElementById("tickets").innerText = "Erro";
-    document.getElementById("pontos").innerText = "Erro";
-  }
-}
+    // 🎉 Confetti
+    function startConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      canvas.style.display = 'block';
 
-async function carregarHistorico() {
-  try {
-    const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
-    const data = await res.json();
-    const lista = document.getElementById("listaGiros");
-    lista.innerHTML = "";
+      const confettis = Array.from({ length: 150 }, () => ({
+        x: Math.random() * canvas.width,
+        y: -10,
+        r: Math.random() * 5 + 2,
+        d: Math.random() * 10 + 2,
+        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+      }));
 
-    if (data.length === 0) {
-      lista.innerHTML = "<li>Nenhum giro registrado ainda.</li>";
-      return;
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confettis.forEach(c => {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+          ctx.fillStyle = c.color;
+          ctx.fill();
+          c.y += c.d;
+        });
+      }
+
+      const interval = setInterval(draw, 30);
+      setTimeout(() => {
+        clearInterval(interval);
+        canvas.style.display = 'none';
+      }, 5000);
     }
 
-    data.forEach(g => {
-      const item = document.createElement("li");
-      item.innerText = `🎯 ${g.premio} — ${new Date(g.data).toLocaleString()}`;
-      lista.appendChild(item);
-    });
-  } catch (err) {
-    console.error("Erro ao carregar histórico:", err);
-    document.getElementById("listaGiros").innerHTML = "<li>Erro ao carregar.</li>";
-  }
-}
-
-carregarSaldo();
-carregarHistorico();
-</script>
-
-    </html>
+    carregarSaldo();
+    carregarHistorico();
+  </script>
+</body>
+</html>
