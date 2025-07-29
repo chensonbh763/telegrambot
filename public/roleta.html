@@ -173,4 +173,79 @@
   </table>
 
 </body>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+  const telegram_id = window.Telegram.WebApp?.initDataUnsafe?.user?.id;
+  const sliceAngle = 360 / 10;
+  const prizes = {
+    1: "5 pontos",
+    2: "10 pontos",
+    3: "Veja vídeo e ganhei",
+    4: "Tente outra vez",
+    5: "15 pontos",
+    6: "5 pontos",
+    7: "10 pontos",
+    8: "Gire denovo",
+    9: "Veja vídeo e ganhei",
+    10: "Desconto no VIP"
+  };
+
+  const wheel = document.getElementById("wheel");
+
+  // Cria as 10 fatias
+  for (let i = 0; i < 10; i++) {
+    const slice = document.createElement("div");
+    slice.className = "slice";
+    slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
+    wheel.appendChild(slice);
+  }
+
+  // Gira a roleta
+  async function spin() {
+    if (!telegram_id) {
+      alert("❌ Erro: Telegram ID não encontrado.");
+      return;
+    }
+
+    try {
+      // Gira visual
+      const rotation = 3600 + Math.random() * 360;
+      wheel.style.transition = "transform 4s ease-out";
+      wheel.style.transform = `rotate(${rotation}deg)`;
+
+      const selected = Math.floor(((rotation % 360) / sliceAngle)) % 10 + 1;
+
+      // Espera rotação
+      setTimeout(async () => {
+        const resultado = prizes[selected];
+
+        // Exibe resultado na tela
+        document.getElementById("result").innerText =
+          `🎁 Resultado: ${resultado}`;
+
+        // Envia para o backend
+        const res = await fetch("/api/roleta/girar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id, premio_id: selected })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("Erro ao girar: " + (data?.erro || "Falha desconhecida"));
+          console.error("Erro no backend:", data);
+          return;
+        }
+
+        alert(`🎉 ${resultado}`);
+      }, 4000);
+    } catch (err) {
+      alert("⚠️ Ocorreu um erro inesperado ao girar.");
+      console.error("Erro no spin():", err);
+    }
+  }
+</script>
+
     </html>
