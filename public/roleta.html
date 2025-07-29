@@ -1,121 +1,122 @@
 <!DOCTYPE html><html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Roleta de Prêmios</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roleta de Prêmios</title>
   <style>
     body {
-      text-align: center;
-      background: #000;
-      color: #FFD700;
       font-family: sans-serif;
-    }
-    nav {
-      background: #2a8f43;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-    }
-    nav a {
-      color: #fff;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    #wheel {
-      width: 300px;
-      height: 300px;
-      border: 8px solid turquoise;
-      border-radius: 50%;
-      position: relative;
-      margin: 20px auto;
-      overflow: hidden;
-      box-shadow: 0 0 20px teal;
-    }
-    .slice {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      transform-origin: 100% 100%;
-      text-align: center;
-      line-height: 140px;
-      font-weight: bold;
-      font-size: 20px;
-      color: #FFD700;
-    }
-    .slice:nth-child(even) { background: teal; }
-    .slice:nth-child(odd) { background: darkgreen; }
-    #pointer {
-      width: 0;
-      height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid #FFD700;
-      margin: auto;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 25px;
-      font-size: 16px;
-      background: turquoise;
-      color: #000;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 22px;
-      font-weight: bold;
-    }
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      width: 80%;
-    }
-    th, td {
-      border: 2px solid turquoise;
-      padding: 10px;
-      font-size: 16px;
-      background: #111;
-      color: #FFD700;
-    }
-    .info {
-      max-width: 600px;
-      margin: 20px auto;
-      text-align: left;
-      background: #111;
-      padding: 15px;
-      border-radius: 10px;
-      border: 2px solid teal;
-    }
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 999;
-    }
+      background: #f0f0f0;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }nav {
+  background: #2a8f43;
+  padding: 10px;
+  text-align: center;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  margin: 0 10px;
+  font-weight: bold;
+}
+
+main {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  color: #2a8f43;
+}
+
+#wheel {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  margin: 20px auto;
+  position: relative;
+  background: conic-gradient(
+    teal 0% 10%, darkgreen 10% 20%, teal 20% 30%, darkgreen 30% 40%,
+    teal 40% 50%, darkgreen 50% 60%, teal 60% 70%, darkgreen 70% 80%,
+    teal 80% 90%, darkgreen 90% 100%
+  );
+  border: 10px solid #2a8f43;
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+#pointer {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 30px solid #2a8f43;
+  margin: 20px auto;
+}
+
+button {
+  background: #2a8f43;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#result {
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+table {
+  margin: 30px auto;
+  width: 90%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  background: white;
+}
+
+canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
   </style>
 </head>
 <body>
   <nav>
-    <a href="index.html">Início</a>
-    <a href="indicacao.html">Indicação</a>
-    <a href="pontuacao.html">Pontuação</a>
-    <a href="saque.html">Saques</a>
-  </nav>  <h1>Roleta Premiada</h1>  <div class="info">
-    <p><strong>Como funciona?</strong></p>
-    <p>VIPs têm direito a 1 giro gratuito por dia.</p>
-    <p>Você também pode girar a roleta usando seus pontos: cada giro custa 10 pontos.</p>
-    <p><strong>Tickets disponíveis:</strong> <span id="tickets">1</span></p>
-    <p><strong>Pontuação atual:</strong> <span id="pontuacao">50</span></p>
-  </div>  <div id="wheel"></div>
-  <div id="pointer"></div>
-  <button onclick="spin()">GIRAR</button>
-  <p id="result"></p>  <table>
+    <a href="index.html">🏠 Início</a>
+    <a href="indicacoes.html">👥 Indicações</a>
+    <a href="pontuacao.html">📊 Pontuação</a>
+    <a href="saque.html">💰 Saque</a>
+  </nav>  <main>
+    <h1>🎰 Roleta da Sorte</h1>
+    <p>VIPs têm 1 giro grátis por dia! Também é possível girar usando seus pontos.</p>
+    <p><strong>Tickets disponíveis:</strong> <span id="tickets">1</span> | <strong>Pontos:</strong> <span id="pontos">100</span></p><div id="wheel"></div>
+<div id="pointer"></div>
+<button onclick="spin()">🎯 Girar</button>
+<p id="result"></p>
+
+<table>
+  <thead>
     <tr><th>Número</th><th>Prêmio</th></tr>
+  </thead>
+  <tbody>
     <tr><td>1</td><td>5 pontos</td></tr>
     <tr><td>2</td><td>10 pontos</td></tr>
     <tr><td>3</td><td>Veja vídeo e ganhei</td></tr>
@@ -126,7 +127,10 @@
     <tr><td>8</td><td>Gire denovo</td></tr>
     <tr><td>9</td><td>Veja vídeo e ganhei</td></tr>
     <tr><td>10</td><td>Desconto no VIP</td></tr>
-  </table><audio id="spinAudio" src="https://www.soundjay.com/misc/sounds/coin-drop-2.mp3"></audio> <canvas id="confetti"></canvas>
+  </tbody>
+</table>
+
+  </main><audio id="spinAudio" src="https://www.soundjay.com/misc/sounds/coin-drop-2.mp3"></audio> <canvas id="confetti"></canvas>
 
   <script>
     const prizes = {
@@ -142,20 +146,12 @@
       10: "Desconto no VIP"
     };
 
-    const wheel = document.getElementById("wheel");
-    const sliceAngle = 360 / 10;
-
-    for (let i = 0; i < 10; i++) {
-      const slice = document.createElement("div");
-      slice.className = "slice";
-      slice.innerText = i + 1;
-      slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
-      wheel.appendChild(slice);
-    }
-
     function spin() {
       document.getElementById("spinAudio").play();
+      const wheel = document.getElementById("wheel");
       const rotation = 3600 + Math.random() * 360;
+      const sliceAngle = 360 / 10;
+
       wheel.style.transition = "transform 4s ease-out";
       wheel.style.transform = `rotate(${rotation}deg)`;
 
@@ -181,19 +177,21 @@
         color: `hsl(${Math.random() * 360}, 70%, 60%)`,
       }));
 
-      function draw() {
+      let frame = 0;
+      const interval = setInterval(() => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         confettis.forEach(c => {
           ctx.beginPath();
-          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+          ctx.arc(c.x, c.y += c.d, c.r, 0, Math.PI * 2);
           ctx.fillStyle = c.color;
           ctx.fill();
-          c.y += c.d;
         });
-      }
-
-      let interval = setInterval(draw, 30);
-      setTimeout(() => clearInterval(interval), 5000);
+        frame++;
+        if (frame > 80) {
+          clearInterval(interval);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }, 30);
     }
   </script></body>
-          </html>
+</html>
