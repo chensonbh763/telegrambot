@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!DOCTYPE html><html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>Roleta de Prêmios</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       text-align: center;
@@ -10,7 +10,18 @@
       color: #FFD700;
       font-family: sans-serif;
     }
-
+    nav {
+      background: #2a8f43;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
     #wheel {
       width: 300px;
       height: 300px;
@@ -21,7 +32,6 @@
       overflow: hidden;
       box-shadow: 0 0 20px teal;
     }
-
     .slice {
       position: absolute;
       width: 50%;
@@ -33,14 +43,8 @@
       font-size: 20px;
       color: #FFD700;
     }
-
-    .slice:nth-child(even) {
-      background: teal;
-    }
-    .slice:nth-child(odd) {
-      background: darkgreen;
-    }
-
+    .slice:nth-child(even) { background: teal; }
+    .slice:nth-child(odd) { background: darkgreen; }
     #pointer {
       width: 0;
       height: 0;
@@ -49,7 +53,6 @@
       border-bottom: 30px solid #FFD700;
       margin: auto;
     }
-
     button {
       margin-top: 15px;
       padding: 10px 25px;
@@ -61,19 +64,16 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     #result {
       margin-top: 20px;
       font-size: 22px;
       font-weight: bold;
     }
-
     table {
       margin: 20px auto;
       border-collapse: collapse;
       width: 80%;
     }
-
     th, td {
       border: 2px solid turquoise;
       padding: 10px;
@@ -81,7 +81,15 @@
       background: #111;
       color: #FFD700;
     }
-
+    .info {
+      max-width: 600px;
+      margin: 20px auto;
+      text-align: left;
+      background: #111;
+      padding: 15px;
+      border-radius: 10px;
+      border: 2px solid teal;
+    }
     canvas {
       position: fixed;
       top: 0;
@@ -92,13 +100,21 @@
   </style>
 </head>
 <body>
-  <h1>Roleta Premiada</h1>
-  <div id="wheel"></div>
+  <nav>
+    <a href="index.html">Início</a>
+    <a href="indicacao.html">Indicação</a>
+    <a href="pontuacao.html">Pontuação</a>
+    <a href="saque.html">Saques</a>
+  </nav>  <h1>Roleta Premiada</h1>  <div class="info">
+    <p><strong>Como funciona?</strong></p>
+    <p>VIPs têm direito a 1 giro gratuito por dia.</p>
+    <p>Você também pode girar a roleta usando seus pontos: cada giro custa 10 pontos.</p>
+    <p><strong>Tickets disponíveis:</strong> <span id="tickets">1</span></p>
+    <p><strong>Pontuação atual:</strong> <span id="pontuacao">50</span></p>
+  </div>  <div id="wheel"></div>
   <div id="pointer"></div>
   <button onclick="spin()">GIRAR</button>
-  <p id="result"></p>
-
-  <table>
+  <p id="result"></p>  <table>
     <tr><th>Número</th><th>Prêmio</th></tr>
     <tr><td>1</td><td>5 pontos</td></tr>
     <tr><td>2</td><td>10 pontos</td></tr>
@@ -110,11 +126,7 @@
     <tr><td>8</td><td>Gire denovo</td></tr>
     <tr><td>9</td><td>Veja vídeo e ganhei</td></tr>
     <tr><td>10</td><td>Desconto no VIP</td></tr>
-  </table>
-
-  <audio id="spinAudio" src="https://www.soundjay.com/misc/sounds/coin-drop-2.mp3"></audio>
-
-  <canvas id="confetti"></canvas>
+  </table><audio id="spinAudio" src="https://www.soundjay.com/misc/sounds/coin-drop-2.mp3"></audio> <canvas id="confetti"></canvas>
 
   <script>
     const prizes = {
@@ -143,7 +155,6 @@
 
     function spin() {
       document.getElementById("spinAudio").play();
-
       const rotation = 3600 + Math.random() * 360;
       wheel.style.transition = "transform 4s ease-out";
       wheel.style.transform = `rotate(${rotation}deg)`;
@@ -156,7 +167,6 @@
       }, 4000);
     }
 
-    // Confetti 🎊
     function startConfetti() {
       const canvas = document.getElementById('confetti');
       const ctx = canvas.getContext('2d');
@@ -185,6 +195,5 @@
       let interval = setInterval(draw, 30);
       setTimeout(() => clearInterval(interval), 5000);
     }
-  </script>
-</body>
-  </html>
+  </script></body>
+          </html>
