@@ -5,20 +5,19 @@
   <title>Roleta de Prêmios</title>
   <style>
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      text-align: center;
+      background: #000;
+      color: #FFD700;
       font-family: sans-serif;
-      background: #000; /* fundo preto */
-      color: #FFD700; /* amarelo */
     }
 
     #wheel {
       width: 300px;
       height: 300px;
-      border: 8px solid turquoise; /* borda turquesa */
+      border: 8px solid turquoise;
       border-radius: 50%;
       position: relative;
+      margin: 20px auto;
       overflow: hidden;
       box-shadow: 0 0 20px teal;
     }
@@ -28,31 +27,34 @@
       width: 50%;
       height: 50%;
       transform-origin: 100% 100%;
-      background: teal;
-      color: #FFD700;
       text-align: center;
       line-height: 140px;
       font-weight: bold;
+      font-size: 20px;
+      color: #FFD700;
     }
 
     .slice:nth-child(even) {
+      background: teal;
+    }
+    .slice:nth-child(odd) {
       background: darkgreen;
     }
 
     #pointer {
-      margin-top: 20px;
       width: 0;
       height: 0;
       border-left: 20px solid transparent;
       border-right: 20px solid transparent;
-      border-bottom: 30px solid #FFD700; /* amarelo */
+      border-bottom: 30px solid #FFD700;
+      margin: auto;
     }
 
     button {
-      margin-top: 20px;
-      padding: 10px 20px;
+      margin-top: 15px;
+      padding: 10px 25px;
       font-size: 16px;
-      background-color: turquoise;
+      background: turquoise;
       color: #000;
       border: none;
       border-radius: 5px;
@@ -61,45 +63,128 @@
     }
 
     #result {
-      margin-top: 15px;
-      font-size: 18px;
+      margin-top: 20px;
+      font-size: 22px;
       font-weight: bold;
+    }
+
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      width: 80%;
+    }
+
+    th, td {
+      border: 2px solid turquoise;
+      padding: 10px;
+      font-size: 16px;
+      background: #111;
+      color: #FFD700;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 999;
     }
   </style>
 </head>
 <body>
+  <h1>Roleta Premiada</h1>
   <div id="wheel"></div>
   <div id="pointer"></div>
   <button onclick="spin()">GIRAR</button>
   <p id="result"></p>
 
+  <table>
+    <tr><th>Número</th><th>Prêmio</th></tr>
+    <tr><td>1</td><td>5 pontos</td></tr>
+    <tr><td>2</td><td>10 pontos</td></tr>
+    <tr><td>3</td><td>Veja vídeo e ganhei</td></tr>
+    <tr><td>4</td><td>Tente outra vez</td></tr>
+    <tr><td>5</td><td>15 pontos</td></tr>
+    <tr><td>6</td><td>5 pontos</td></tr>
+    <tr><td>7</td><td>10 pontos</td></tr>
+    <tr><td>8</td><td>Gire denovo</td></tr>
+    <tr><td>9</td><td>Veja vídeo e ganhei</td></tr>
+    <tr><td>10</td><td>Desconto no VIP</td></tr>
+  </table>
+
+  <audio id="spinAudio" src="https://www.soundjay.com/misc/sounds/coin-drop-2.mp3"></audio>
+
+  <canvas id="confetti"></canvas>
+
   <script>
-    const prizes = [
-      "5 pontos", "10 pontos", "Veja vídeo e ganhe", "Tente outra vez", "5 pontos",
-      "10 pontos", "Desconto no vip", "Gire denovo", "Veja vídeo e Ganhe", "15 pontos"
-    ];
+    const prizes = {
+      1: "5 pontos",
+      2: "10 pontos",
+      3: "Veja vídeo e ganhei",
+      4: "Tente outra vez",
+      5: "15 pontos",
+      6: "5 pontos",
+      7: "10 pontos",
+      8: "Gire denovo",
+      9: "Veja vídeo e ganhei",
+      10: "Desconto no VIP"
+    };
 
     const wheel = document.getElementById("wheel");
-    const sliceAngle = 360 / prizes.length;
+    const sliceAngle = 360 / 10;
 
-    prizes.forEach((prize, i) => {
+    for (let i = 0; i < 10; i++) {
       const slice = document.createElement("div");
       slice.className = "slice";
+      slice.innerText = i + 1;
       slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
-      slice.innerText = prize;
       wheel.appendChild(slice);
-    });
+    }
 
     function spin() {
+      document.getElementById("spinAudio").play();
+
       const rotation = 3600 + Math.random() * 360;
       wheel.style.transition = "transform 4s ease-out";
       wheel.style.transform = `rotate(${rotation}deg)`;
 
-      const selected = Math.floor(((rotation % 360) / sliceAngle)) % prizes.length;
+      const selected = Math.floor(((rotation % 360) / sliceAngle)) % 10 + 1;
+
       setTimeout(() => {
-        document.getElementById("result").innerText = `Você ganhou: ${prizes[selected]}!`;
+        document.getElementById("result").innerText = `Você tirou o número ${selected}: ${prizes[selected]}`;
+        startConfetti();
       }, 4000);
+    }
+
+    // Confetti 🎊
+    function startConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const confettis = Array.from({length: 150}, () => ({
+        x: Math.random() * canvas.width,
+        y: -10,
+        r: Math.random() * 5 + 2,
+        d: Math.random() * 10 + 2,
+        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+      }));
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confettis.forEach(c => {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+          ctx.fillStyle = c.color;
+          ctx.fill();
+          c.y += c.d;
+        });
+      }
+
+      let interval = setInterval(draw, 30);
+      setTimeout(() => clearInterval(interval), 5000);
     }
   </script>
 </body>
-</html>
+  </html>
