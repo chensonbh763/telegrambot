@@ -252,6 +252,57 @@
       console.error("Erro no spin():", err);
     }
   }
+
+const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+async function carregarSaldo() {
+  try {
+    const res = await fetch(`/api/usuarios/${telegram_id}`);
+    const user = await res.json();
+
+    document.getElementById("pontos").innerText = user.pontos || 0;
+
+    // Verifica se já girou grátis hoje
+    let tickets = 0;
+    if (user.vip) {
+      const giroRes = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
+      const girouHoje = await giroRes.json();
+      tickets = girouHoje.girou ? 0 : 1;
+    }
+
+    document.getElementById("tickets").innerText = tickets;
+  } catch (err) {
+    console.error("Erro ao carregar saldo:", err);
+    document.getElementById("tickets").innerText = "Erro";
+    document.getElementById("pontos").innerText = "Erro";
+  }
+}
+
+async function carregarHistorico() {
+  try {
+    const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
+    const data = await res.json();
+    const lista = document.getElementById("listaGiros");
+    lista.innerHTML = "";
+
+    if (data.length === 0) {
+      lista.innerHTML = "<li>Nenhum giro registrado ainda.</li>";
+      return;
+    }
+
+    data.forEach(g => {
+      const item = document.createElement("li");
+      item.innerText = `🎯 ${g.premio} — ${new Date(g.data).toLocaleString()}`;
+      lista.appendChild(item);
+    });
+  } catch (err) {
+    console.error("Erro ao carregar histórico:", err);
+    document.getElementById("listaGiros").innerHTML = "<li>Erro ao carregar.</li>";
+  }
+}
+
+carregarSaldo();
+carregarHistorico();
 </script>
 
     </html>
