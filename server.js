@@ -126,14 +126,14 @@ app.post("/api/roleta/girar", async (req, res) => {
   const premios = {
     1: { tipo: "pontos", valor: 5 },
     2: { tipo: "pontos", valor: 10 },
-    3: { tipo: "video", valor: 0 },
+    3: { tipo: "pontos", valor: 15 },
     4: { tipo: "nada", valor: 0 },
-    5: { tipo: "pontos", valor: 15 },
-    6: { tipo: "pontos", valor: 5 },
-    7: { tipo: "pontos", valor: 10 },
-    8: { tipo: "gire_novamente", valor: 0 },
-    9: { tipo: "video", valor: 0 },
-    10: { tipo: "desconto_vip", valor: 0 }
+    5: { tipo: "pontos", valor: 5 },
+    6: { tipo: "pontos", valor: 10 },
+    7: { tipo: "pontos", valor: 15 },
+    8: { tipo: "nada", valor: 0 },
+    9: { tipo: "pontos", valor: 20 },
+    10: { tipo: "pontos", valor: 25 }
   };
 
   try {
