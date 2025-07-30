@@ -166,18 +166,9 @@
     <p><strong>⭐ Pontos:</strong> <span id="pontos">Carregando...</span></p>
   </div>
 
-  <div id="wheel">
+  <div id="wheel"> </div>
   <div class="slice" style="transform: rotate(0deg) skewY(-54deg); background: #fbc02d;"></div>
-  <div class="slice" style="transform: rotate(36deg) skewY(-54deg); background: #ff7043;"></div>
-  <div class="slice" style="transform: rotate(72deg) skewY(-54deg); background: #66bb6a;"></div>
-  <div class="slice" style="transform: rotate(108deg) skewY(-54deg); background: #29b6f6;"></div>
-  <div class="slice" style="transform: rotate(144deg) skewY(-54deg); background: #ab47bc;"></div>
-  <div class="slice" style="transform: rotate(180deg) skewY(-54deg); background: #fbc02d;"></div>
-  <div class="slice" style="transform: rotate(216deg) skewY(-54deg); background: #ff7043;"></div>
-  <div class="slice" style="transform: rotate(252deg) skewY(-54deg); background: #66bb6a;"></div>
-  <div class="slice" style="transform: rotate(288deg) skewY(-54deg); background: #29b6f6;"></div>
-  <div class="slice" style="transform: rotate(324deg) skewY(-54deg); background: #ab47bc;"></div>
-</div>
+  
   <div id="pointer"></div>
   <button id="btnGirar" onclick="spin()">🎯 Girar</button>
   <p id="result"></p>
@@ -229,11 +220,25 @@
     const wheel = document.getElementById("wheel");
 
     for (let i = 0; i < 10; i++) {
-      const slice = document.createElement("div");
-      slice.className = "slice";
-      slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-60deg)`;
-      wheel.appendChild(slice);
-    }
+  const slice = document.createElement("div");
+  slice.className = "slice";
+  slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-54deg)`;
+  slice.style.background = i % 2 === 0 ? "#a5d6a7" : "#c5e1c4";
+
+  const label = document.createElement("span");
+  label.innerText = i + 1;
+  label.style.position = "absolute";
+  label.style.top = "50%";
+  label.style.left = "100%";
+  label.style.transform = "translate(-50%, -50%) rotate(-18deg)";
+  label.style.transformOrigin = "0% 0%";
+  label.style.fontWeight = "bold";
+  label.style.fontSize = "14px";
+  label.style.color = "#000";
+  slice.appendChild(label);
+
+  wheel.appendChild(slice);
+}
 
     async function spin() {
       const btn = document.getElementById("btnGirar");
