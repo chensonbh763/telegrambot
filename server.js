@@ -213,7 +213,14 @@ app.get("/ofertas/bitlabs", (req, res) => {
   const url = `https://web.bitlabs.ai/?uid=${user_id}&token=${token}`;
   res.redirect(url);
 });
+app.post("/api/bitlabs/callback", express.json(), async (req, res) => {
+  const { user_id, amount } = req.body;
 
+  // Atualize o saldo do usuário
+  await db.query("UPDATE usuarios SET pontos = pontos + $1 WHERE telegram_id = $2", [amount, user_id]);
+
+  res.status(200).send("OK");
+});
 // 🔹 4. Rotas de Usuário
 app.get("/api/usuarios/:telegram_id", async (req, res) => {
   const { telegram_id } = req.params;
