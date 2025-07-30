@@ -205,6 +205,15 @@ app.get("/api/roleta/historico", async (req, res) => {
   res.json(rows);
 });
 
+app.get("/ofertas/bitlabs", (req, res) => {
+  const { user_id } = req.query;
+  if (!user_id) return res.status(400).send("ID do usuário é obrigatório.");
+
+  const token = process.env.BITLABS_TOKEN;
+  const url = `https://web.bitlabs.ai/?uid=${user_id}&token=${token}`;
+  res.redirect(url);
+});
+
 // 🔹 4. Rotas de Usuário
 app.get("/api/usuarios/:telegram_id", async (req, res) => {
   const { telegram_id } = req.params;
