@@ -270,7 +270,16 @@
       <button>🚀 Quero ser VIP</button>
     </a>
   </div>
+<script>
+  const tg = window.Telegram.WebApp;
+  const userId = tg.initDataUnsafe.user?.id;
 
+  document.getElementById("bitlabs-btn").addEventListener("click", () => {
+    window.location.href = `/ofertas/bitlabs?user_id=${userId}`;
+  });
+</script>
+
+<button id="bitlabs-btn" class="botao">Ganhar Pontos com BitLabs</button>
   <!-- Tarefas -->
   <h2>✅ Tarefas Gerais</h2>
   <div id="tarefas">Carregando tarefas...</div>
