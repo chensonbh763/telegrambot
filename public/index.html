@@ -256,11 +256,18 @@
     VIPs têm 1 giro grátis por dia!<br>
     Também é possível girar usando seus pontos.
   </p>
-  <a href="roleta.html">
-    <button style="background: #2a8f43; color: white; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
-      🎯 Girar Agora
-    </button>
-  </a>
+  <button onclick="abrirRoleta()">🎯 Girar Agora</button>
+
+<script>
+  function abrirRoleta() {
+    const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    if (!telegram_id) {
+      alert("⚠️ ID do Telegram não encontrado.");
+      return;
+    }
+    window.location.href = `roleta.html?id=${telegram_id}`;
+  }
+</script>
 </div>
   <!-- VIP -->
   <div class="vip-box">
