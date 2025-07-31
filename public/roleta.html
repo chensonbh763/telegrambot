@@ -2,58 +2,52 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>🎰 Roleta da Sorte</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Arial, sans-serif;
       background: #f4f4f4;
-      max-width: 600px;
-      margin: auto;
+      margin: 0;
       padding: 20px;
-      color: #222;
+      text-align: center;
     }
 
     nav {
-      background: #2a8f43;
-      padding: 10px;
-      border-radius: 10px;
-      text-align: center;
       margin-bottom: 20px;
     }
 
     nav a {
-      color: #fff;
-      text-decoration: none;
       margin: 0 10px;
+      text-decoration: none;
       font-weight: bold;
+      color: #3498db;
     }
 
     h1 {
-      text-align: center;
-      color: #2a8f43;
-      font-size: 24px;
+      color: #2c3e50;
     }
 
     .descricao {
-      text-align: center;
-      font-size: 15px;
-      margin: 10px 0 20px;
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 20px;
     }
 
     .card {
-      background: #fff;
-      padding: 15px;
+      background: white;
       border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
+      padding: 15px;
+      margin: 15px auto;
+      max-width: 400px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
     .roleta-container {
       position: relative;
       width: 300px;
       height: 300px;
-      margin: 20px auto;
+      margin: 0 auto;
     }
 
     #ponteiro {
@@ -74,6 +68,7 @@
       height: 100%;
       border-radius: 50%;
       border: 8px solid #2c3e50;
+      position: relative;
       background: conic-gradient(
         #f54242 0deg 30deg,
         #f1c40f 30deg 60deg,
@@ -93,8 +88,7 @@
     }
 
     #botaoGirar {
-      margin: 20px auto;
-      display: block;
+      margin-top: 20px;
       padding: 10px 20px;
       font-size: 18px;
       background-color: #3498db;
@@ -104,45 +98,32 @@
       cursor: pointer;
     }
 
-    #resultado {
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-      margin-top: 10px;
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 30px;
+    table, th, td {
+      border: 1px solid #ccc;
     }
 
     th, td {
-      padding: 10px;
-      border: 1px solid #ccc;
-      text-align: center;
+      padding: 8px 12px;
     }
 
-    th {
-      background-color: #e6f5e9;
-      color: #2a8f43;
+    ul {
+      list-style: none;
+      padding: 0;
     }
 
-    #historico {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 30px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-
-    #historico ul {
-      padding-left: 20px;
-    }
-
-    #historico li {
-      margin-bottom: 6px;
-      font-size: 14px;
+    canvas {
+      position: fixed;
+      pointer-events: none;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 999;
     }
   </style>
 </head>
@@ -186,7 +167,7 @@
       <tr><td>5</td><td>5 pontos</td></tr>
       <tr><td>6</td><td>10 pontos</td></tr>
       <tr><td>7</td><td>15 pontos</td></tr>
-      <tr><td>8</td><td>Gire de novo</td></tr>
+      <tr><td>8</td><td>Gire denovo</td></tr>
       <tr><td>9</td><td>20 pontos</td></tr>
       <tr><td>10</td><td>25 pontos</td></tr>
       <tr><td>11</td><td>30 pontos</td></tr>
@@ -200,106 +181,115 @@
       <li>Carregando histórico...</li>
     </ul>
   </div>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <canvas id="confetti"></canvas>
+
   <script>
-  const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-  const roleta = document.getElementById("roleta");
-  const numFatias = 12;
-  const anguloPorFatia = 360 / numFatias;
-  let rotacaoAtual = 0;
-  const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "EXEMPLO_ID";
+    const urlParams = new URLSearchParams(window.location.search);
+    const telegram_id = urlParams.get("id");
 
-  async function carregarSaldo() {
-    try {
-      const res = await fetch(`/api/usuarios/${telegram_id}`);
-      const user = await res.json();
+    const pontosSpan = document.getElementById("pontos");
+    const ticketsSpan = document.getElementById("tickets");
+    const listaGiros = document.getElementById("listaGiros");
 
-      document.getElementById("pontos").innerText = user.pontos ?? 0;
+    const roleta = document.getElementById("roleta");
+    const numFatias = 12;
+    const anguloPorFatia = 360 / numFatias;
+    let rotacaoAtual = 0;
 
-      let tickets = 0;
-      if (user.vip) {
-        const giroRes = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
-        const girouHoje = await giroRes.json();
-        tickets = girouHoje.girou ? 0 : 1;
-      }
-
-      document.getElementById("tickets").innerText = tickets;
-    } catch (err) {
-      console.error("Erro ao carregar saldo:", err);
-      document.getElementById("tickets").innerText = "Erro";
-      document.getElementById("pontos").innerText = "Erro";
-    }
-  }
-
-  async function carregarHistorico() {
-    try {
-      const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
-      const data = await res.json();
-      const lista = document.getElementById("listaGiros");
-      lista.innerHTML = "";
-
-      if (data.length === 0) {
-        lista.innerHTML = "<li>Nenhum giro registrado ainda.</li>";
-        return;
-      }
-
-      data.forEach(g => {
-        const item = document.createElement("li");
-        const dataFormatada = new Date(g.data).toLocaleString("pt-BR");
-        item.innerText = `🎯 ${g.premio} — ${dataFormatada}`;
-        lista.appendChild(item);
-      });
-    } catch (err) {
-      console.error("Erro ao carregar histórico:", err);
-      document.getElementById("listaGiros").innerHTML = "<li>Erro ao carregar.</li>";
-    }
-  }
-
-  document.getElementById("botaoGirar").addEventListener("click", async () => {
-    const btn = document.getElementById("botaoGirar");
-    btn.disabled = true;
-
-    const giros = 5 + Math.floor(Math.random() * 3);
-    const resultadoIndex = Math.floor(Math.random() * numFatias);
-    const anguloFinal = 360 * giros + (360 - resultadoIndex * anguloPorFatia - anguloPorFatia / 2);
-
-    rotacaoAtual += anguloFinal;
-    roleta.style.transform = `rotate(${rotacaoAtual}deg)`;
-
-    setTimeout(async () => {
-      const resultado = resultadoIndex + 1;
-      document.getElementById("resultado").textContent = `Resultado: ${resultado}`;
-
+    async function carregarDados() {
       try {
+        const resUser = await fetch(`/api/usuarios/${telegram_id}`);
+        const usuario = await resUser.json();
+        pontosSpan.textContent = usuario.pontos;
+
+        const resHoje = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
+        const hoje = await resHoje.json();
+        ticketsSpan.textContent = hoje.girou ? "0" : "1";
+
+        const resHist = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
+        const historico = await resHist.json();
+        listaGiros.innerHTML = "";
+        historico.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = `🎁 ${item.premio} - ${new Date(item.data).toLocaleString("pt-BR")}`;
+          listaGiros.appendChild(li);
+        });
+
+      } catch (err) {
+        alert("Erro ao carregar dados.");
+        console.error(err);
+      }
+    }
+
+    function dispararConfete() {
+      const canvas = document.getElementById("confetti");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const confetes = Array.from({ length: 100 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        r: Math.random() * 6 + 4,
+        d: Math.random() * 5 + 2,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`
+      }));
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetes.forEach(c => {
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+          ctx.fillStyle = c.color;
+          ctx.fill();
+        });
+        update();
+      }
+
+      function update() {
+        confetes.forEach(c => {
+          c.y += c.d;
+          if (c.y > canvas.height) {
+            c.y = -c.r;
+            c.x = Math.random() * canvas.width;
+          }
+        });
+      }
+
+      const interval = setInterval(draw, 20);
+      setTimeout(() => clearInterval(interval), 5000);
+    }
+
+    document.getElementById("botaoGirar").addEventListener("click", async () => {
+      const resultadoIndex = Math.floor(Math.random() * numFatias);
+      const giros = 5 + Math.floor(Math.random() * 3);
+      const anguloFinal = 360 * giros + (360 - resultadoIndex * anguloPorFatia - anguloPorFatia / 2);
+      rotacaoAtual += anguloFinal;
+      roleta.style.transform = `rotate(${rotacaoAtual}deg)`;
+
+      setTimeout(async () => {
+        const premio_id = resultadoIndex + 1;
+
         const res = await fetch("/api/roleta/girar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ telegram_id, premio_id: resultado })
+          body: JSON.stringify({ telegram_id, premio_id })
         });
 
         const data = await res.json();
 
-        if (!res.ok) {
-          alert("Erro ao girar: " + (data?.erro || "Falha desconhecida"));
+        if (res.ok) {
+          document.getElementById("resultado").textContent = `🎉 Você ganhou: ${data.premio}`;
+          dispararConfete();
+          carregarDados();
         } else {
-          alert(`🎉 Você ganhou: ${data.premio}`);
+          alert(data.erro || "Erro ao girar.");
         }
+      }, 5000);
+    });
 
-        carregarSaldo();
-        carregarHistorico();
-        btn.disabled = false;
-
-      } catch (err) {
-        console.error("Erro ao enviar giro:", err);
-        alert("⚠️ Erro ao girar.");
-        btn.disabled = false;
-      }
-    }, 5000);
-  });
-
-  // Inicialização
-  carregarSaldo();
-  carregarHistorico();
-</script>
+    carregarDados();
+  </script>
 </body>
 </html>
