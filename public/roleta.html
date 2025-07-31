@@ -194,34 +194,42 @@
 
   <canvas id="confetti"></canvas>
 
-  <script>
-    //const urlParams = new URLSearchParams(window.location.search);
-    //const telegram_id = urlParams.get("id");
- const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
-    const roleta = document.getElementById("roleta");
-    const botaoGirar = document.getElementById("botaoGirar");
-    const resultado = document.getElementById("resultado");
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const telegram_id = urlParams.get("id") || window.Telegram?.WebApp?.initDataUnsafe?.user?.id || null;
 
-    let rotacaoAtual = 0;
+  const roleta = document.getElementById("roleta");
+  const botaoGirar = document.getElementById("botaoGirar");
+  const resultado = document.getElementById("resultado");
 
-    const anguloPorFatia = 360 / 12;
+  let rotacaoAtual = 0;
+  const anguloPorFatia = 360 / 12;
 
-    async function carregarUsuario() {
-      if (!telegram_id) {
-        alert("ID do usuário não encontrado.");
-        return;
-      }
+  async function carregarUsuario() {
+    if (!telegram_id) {
+      alert("ID do usuário não encontrado.");
+      return;
+    }
 
+    try {
       const res = await fetch(`/api/usuarios/${telegram_id}`);
+      if (!res.ok) throw new Error("Usuário não encontrado");
       const user = await res.json();
+
       document.getElementById("pontos").textContent = user.pontos ?? 0;
 
       const hoje = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
       const { girou } = await hoje.json();
       document.getElementById("tickets").textContent = girou ? "0" : "1";
+    } catch (err) {
+      alert("Erro ao carregar usuário: " + err.message);
     }
+  }
 
-    async function carregarHistorico() {
+  async function carregarHistorico() {
+    if (!telegram_id) return;
+
+    try {
       const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
       const giros = await res.json();
       const lista = document.getElementById("listaGiros");
@@ -231,42 +239,39 @@
         li.textContent = `🎁 ${g.premio} - ${new Date(g.data).toLocaleString()}`;
         lista.appendChild(li);
       });
+    } catch (err) {
+      console.error("Erro ao carregar histórico:", err.message);
+    }
+  }
+
+  function dispararConfete() {
+    const duration = 1500;
+    const end = Date.now() + duration;
+    const colors = ['#bb0000', '#ffffff'];
+
+    (function frame() {
+      confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 }, colors });
+      confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+  }
+
+  botaoGirar.addEventListener("click", async () => {
+    if (!telegram_id) {
+      alert("ID do usuário não encontrado.");
+      return;
     }
 
-    function dispararConfete() {
-      const duration = 1500;
-      const end = Date.now() + duration;
-      const colors = ['#bb0000', '#ffffff'];
+    const resultadoIndex = Math.floor(Math.random() * 12); // 0 a 11
+    const giros = 5 + Math.floor(Math.random() * 3);
+    const anguloFinal = 360 * giros + (360 - resultadoIndex * anguloPorFatia - anguloPorFatia / 2);
+    rotacaoAtual += anguloFinal;
+    roleta.style.transform = `rotate(${rotacaoAtual}deg)`;
 
-      (function frame() {
-        confetti({
-          particleCount: 2,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors: colors
-        });
-        confetti({
-          particleCount: 2,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors: colors
-        });
+    setTimeout(async () => {
+      const premio_id = resultadoIndex + 1;
 
-        if (Date.now() < end) requestAnimationFrame(frame);
-      })();
-    }
-
-    botaoGirar.addEventListener("click", async () => {
-      const resultadoIndex = Math.floor(Math.random() * 12); // 0 a 11
-      const giros = 5 + Math.floor(Math.random() * 3);
-      const anguloFinal = 360 * giros + (360 - resultadoIndex * anguloPorFatia - anguloPorFatia / 2);
-      rotacaoAtual += anguloFinal;
-      roleta.style.transform = `rotate(${rotacaoAtual}deg)`;
-
-      setTimeout(async () => {
-        const premio_id = resultadoIndex + 1;
+      try {
         const res = await fetch("/api/roleta/girar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -275,15 +280,19 @@
 
         const data = await res.json();
         resultado.textContent = data.erro || `Resultado: ${data.premio}`;
+
         carregarUsuario();
         carregarHistorico();
         if (!data.erro) dispararConfete();
-      }, 5000);
-    });
+      } catch (err) {
+        alert("Erro ao girar: " + err.message);
+      }
+    }, 5000);
+  });
 
-    carregarUsuario();
-    carregarHistorico();
-  </script>
+  carregarUsuario();
+  carregarHistorico();
+</script>
 
   <!-- Confetti Library (via CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
