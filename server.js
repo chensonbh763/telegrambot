@@ -133,8 +133,8 @@ app.post("/api/roleta/girar", async (req, res) => {
     7: { tipo: "pontos", valor: 15 },
     8: { tipo: "nada", valor: 0 },
     9: { tipo: "pontos", valor: 20 },
-    10: { tipo: "pontos", valor: 25 }
-    11: { tipo: "pontos", valor: 30 }
+    10: { tipo: "pontos", valor: 25 },
+    11: { tipo: "pontos", valor: 30 },
     12: { tipo: "pontos", valor: 40 }
   };
 
