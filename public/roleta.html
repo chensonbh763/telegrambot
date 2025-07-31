@@ -9,45 +9,46 @@
       font-family: Arial, sans-serif;
       background: #f4f4f4;
       margin: 0;
-      padding: 20px;
+      padding: 0;
       text-align: center;
     }
 
     nav {
-      margin-bottom: 20px;
+      background-color: #3498db;
+      padding: 10px;
+      display: flex;
+      justify-content: space-around;
     }
 
     nav a {
-      margin: 0 10px;
+      color: white;
       text-decoration: none;
       font-weight: bold;
-      color: #3498db;
     }
 
     h1 {
-      color: #2c3e50;
+      margin-top: 20px;
     }
 
     .descricao {
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 20px;
+      margin: 10px 20px;
     }
 
     .card {
       background: white;
       border-radius: 10px;
-      padding: 15px;
-      margin: 15px auto;
-      max-width: 400px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 15px;
+      margin: 20px;
+      display: inline-block;
+      text-align: left;
     }
 
     .roleta-container {
       position: relative;
       width: 300px;
       height: 300px;
-      margin: 0 auto;
+      margin: 20px auto;
     }
 
     #ponteiro {
@@ -68,7 +69,6 @@
       height: 100%;
       border-radius: 50%;
       border: 8px solid #2c3e50;
-      position: relative;
       background: conic-gradient(
         #f54242 0deg 30deg,
         #f1c40f 30deg 60deg,
@@ -83,12 +83,10 @@
         #27ae60 300deg 330deg,
         #f39c12 330deg 360deg
       );
-      transform: rotate(0deg);
       transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     #botaoGirar {
-      margin-top: 20px;
       padding: 10px 20px;
       font-size: 18px;
       background-color: #3498db;
@@ -96,34 +94,38 @@
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #resultado {
+      margin-top: 15px;
+      font-weight: bold;
     }
 
     table {
       margin: 20px auto;
       border-collapse: collapse;
-    }
-
-    table, th, td {
-      border: 1px solid #ccc;
+      width: 90%;
+      max-width: 500px;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
     th, td {
-      padding: 8px 12px;
+      padding: 12px;
+      border-bottom: 1px solid #ccc;
+      text-align: center;
     }
 
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    canvas {
+    #confetti {
       position: fixed;
-      pointer-events: none;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: 999;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -188,81 +190,68 @@
     const urlParams = new URLSearchParams(window.location.search);
     const telegram_id = urlParams.get("id");
 
-    const pontosSpan = document.getElementById("pontos");
-    const ticketsSpan = document.getElementById("tickets");
-    const listaGiros = document.getElementById("listaGiros");
-
     const roleta = document.getElementById("roleta");
-    const numFatias = 12;
-    const anguloPorFatia = 360 / numFatias;
+    const botaoGirar = document.getElementById("botaoGirar");
+    const resultado = document.getElementById("resultado");
+
     let rotacaoAtual = 0;
 
-    async function carregarDados() {
-      try {
-        const resUser = await fetch(`/api/usuarios/${telegram_id}`);
-        const usuario = await resUser.json();
-        pontosSpan.textContent = usuario.pontos;
+    const anguloPorFatia = 360 / 12;
 
-        const resHoje = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
-        const hoje = await resHoje.json();
-        ticketsSpan.textContent = hoje.girou ? "0" : "1";
-
-        const resHist = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
-        const historico = await resHist.json();
-        listaGiros.innerHTML = "";
-        historico.forEach(item => {
-          const li = document.createElement("li");
-          li.textContent = `🎁 ${item.premio} - ${new Date(item.data).toLocaleString("pt-BR")}`;
-          listaGiros.appendChild(li);
-        });
-
-      } catch (err) {
-        alert("Erro ao carregar dados.");
-        console.error(err);
+    async function carregarUsuario() {
+      if (!telegram_id) {
+        alert("ID do usuário não encontrado.");
+        return;
       }
+
+      const res = await fetch(`/api/usuarios/${telegram_id}`);
+      const user = await res.json();
+      document.getElementById("pontos").textContent = user.pontos ?? 0;
+
+      const hoje = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
+      const { girou } = await hoje.json();
+      document.getElementById("tickets").textContent = girou ? "0" : "1";
+    }
+
+    async function carregarHistorico() {
+      const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
+      const giros = await res.json();
+      const lista = document.getElementById("listaGiros");
+      lista.innerHTML = "";
+      giros.forEach(g => {
+        const li = document.createElement("li");
+        li.textContent = `🎁 ${g.premio} - ${new Date(g.data).toLocaleString()}`;
+        lista.appendChild(li);
+      });
     }
 
     function dispararConfete() {
-      const canvas = document.getElementById("confetti");
-      const ctx = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const duration = 1500;
+      const end = Date.now() + duration;
+      const colors = ['#bb0000', '#ffffff'];
 
-      const confetes = Array.from({ length: 100 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height - canvas.height,
-        r: Math.random() * 6 + 4,
-        d: Math.random() * 5 + 2,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`
-      }));
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confetes.forEach(c => {
-          ctx.beginPath();
-          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-          ctx.fillStyle = c.color;
-          ctx.fill();
+      (function frame() {
+        confetti({
+          particleCount: 2,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: colors
         });
-        update();
-      }
-
-      function update() {
-        confetes.forEach(c => {
-          c.y += c.d;
-          if (c.y > canvas.height) {
-            c.y = -c.r;
-            c.x = Math.random() * canvas.width;
-          }
+        confetti({
+          particleCount: 2,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: colors
         });
-      }
 
-      const interval = setInterval(draw, 20);
-      setTimeout(() => clearInterval(interval), 5000);
+        if (Date.now() < end) requestAnimationFrame(frame);
+      })();
     }
 
-    document.getElementById("botaoGirar").addEventListener("click", async () => {
-      const resultadoIndex = Math.floor(Math.random() * numFatias);
+    botaoGirar.addEventListener("click", async () => {
+      const resultadoIndex = Math.floor(Math.random() * 12); // 0 a 11
       const giros = 5 + Math.floor(Math.random() * 3);
       const anguloFinal = 360 * giros + (360 - resultadoIndex * anguloPorFatia - anguloPorFatia / 2);
       rotacaoAtual += anguloFinal;
@@ -270,7 +259,6 @@
 
       setTimeout(async () => {
         const premio_id = resultadoIndex + 1;
-
         const res = await fetch("/api/roleta/girar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -278,18 +266,19 @@
         });
 
         const data = await res.json();
-
-        if (res.ok) {
-          document.getElementById("resultado").textContent = `🎉 Você ganhou: ${data.premio}`;
-          dispararConfete();
-          carregarDados();
-        } else {
-          alert(data.erro || "Erro ao girar.");
-        }
+        resultado.textContent = data.erro || `Resultado: ${data.premio}`;
+        carregarUsuario();
+        carregarHistorico();
+        if (!data.erro) dispararConfete();
       }, 5000);
     });
 
-    carregarDados();
+    carregarUsuario();
+    carregarHistorico();
   </script>
+
+  <!-- Confetti Library (via CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 </body>
-</html>
+  </html>
