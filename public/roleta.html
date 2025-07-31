@@ -200,8 +200,9 @@
       <li>Carregando histórico...</li>
     </ul>
   </div>
-
-<script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script>
+  const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
   const roleta = document.getElementById("roleta");
   const numFatias = 12;
   const anguloPorFatia = 360 / numFatias;
