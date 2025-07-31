@@ -2,18 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>🎰 Roleta da Sorte - LucreMaisTask</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>🎰 Roleta da Sorte</title>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
-      background: #f0f0f0;
-      margin: 0;
-      padding: 20px;
-      color: #222;
+      font-family: sans-serif;
+      background: #f4f4f4;
       max-width: 600px;
       margin: auto;
+      padding: 20px;
+      color: #222;
     }
 
     nav {
@@ -29,77 +27,88 @@
       text-decoration: none;
       margin: 0 10px;
       font-weight: bold;
-      font-size: 15px;
     }
 
     h1 {
       text-align: center;
       color: #2a8f43;
-      font-size: 22px;
-      margin-top: 10px;
+      font-size: 24px;
     }
 
     .descricao {
       text-align: center;
       font-size: 15px;
-      margin: 10px 0 15px;
+      margin: 10px 0 20px;
     }
 
-    .status {
-      text-align: center;
-      font-weight: bold;
+    .card {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
       margin-bottom: 20px;
     }
 
-    #wheel {
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  position: relative;
-  margin: 20px auto;
-  overflow: hidden;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-  transform: rotate(0deg);
-}
-
-.slice {
-  position: absolute;
-  width: 50%;
-  height: 50%;
-  top: 50%;
-  left: 50%;
-  transform-origin: 0% 0%;
-  border: 1px solid #fff;
+    .roleta-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 20px auto;
     }
 
-    #pointer {
+    #ponteiro {
       width: 0;
       height: 0;
-      border-left: 20px solid transparent;
-      border-right: 20px solid transparent;
-      border-bottom: 30px solid #2a8f43;
-      margin: auto;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 40px solid red;
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
     }
 
-    button {
-      display: block;
+    .roleta {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 8px solid #2c3e50;
+      background: conic-gradient(
+        #f54242 0deg 30deg,
+        #f1c40f 30deg 60deg,
+        #2ecc71 60deg 90deg,
+        #3498db 90deg 120deg,
+        #9b59b6 120deg 150deg,
+        #e67e22 150deg 180deg,
+        #1abc9c 180deg 210deg,
+        #8e44ad 210deg 240deg,
+        #e74c3c 240deg 270deg,
+        #2980b9 270deg 300deg,
+        #27ae60 300deg 330deg,
+        #f39c12 330deg 360deg
+      );
+      transform: rotate(0deg);
+      transition: transform 5s cubic-bezier(0.33, 1, 0.68, 1);
+    }
+
+    #botaoGirar {
       margin: 20px auto;
-      padding: 12px 24px;
-      font-size: 16px;
-      background: #2a8f43;
+      display: block;
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #3498db;
       color: white;
       border: none;
-      border-radius: 6px;
-      font-weight: bold;
+      border-radius: 10px;
       cursor: pointer;
     }
 
-    #result {
+    #resultado {
       text-align: center;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: bold;
-      margin-top: 15px;
-      color: #2a8f43;
+      margin-top: 10px;
     }
 
     table {
@@ -111,21 +120,12 @@
     th, td {
       padding: 10px;
       border: 1px solid #ccc;
-      font-size: 14px;
       text-align: center;
     }
 
     th {
       background-color: #e6f5e9;
       color: #2a8f43;
-    }
-
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      pointer-events: none;
-      z-index: 999;
     }
 
     #historico {
@@ -166,12 +166,13 @@
     <p><strong>⭐ Pontos:</strong> <span id="pontos">Carregando...</span></p>
   </div>
 
-  <div id="wheel"> </div>
-  <div class="slice" style="transform: rotate(0deg) skewY(-54deg); background: #fbc02d;"></div>
-  
-  <div id="pointer"></div>
-  <button id="btnGirar" onclick="spin()">🎯 Girar</button>
-  <p id="result"></p>
+  <div class="roleta-container">
+    <div id="ponteiro"></div>
+    <div class="roleta" id="roleta"></div>
+  </div>
+
+  <button id="botaoGirar">Girar Roleta</button>
+  <div id="resultado"></div>
 
   <table>
     <thead>
@@ -185,9 +186,11 @@
       <tr><td>5</td><td>5 pontos</td></tr>
       <tr><td>6</td><td>10 pontos</td></tr>
       <tr><td>7</td><td>15 pontos</td></tr>
-      <tr><td>8</td><td>Gire denovo</td></tr>
+      <tr><td>8</td><td>Gire de novo</td></tr>
       <tr><td>9</td><td>20 pontos</td></tr>
       <tr><td>10</td><td>25 pontos</td></tr>
+      <tr><td>11</td><td>30 pontos</td></tr>
+      <tr><td>12</td><td>40 pontos</td></tr>
     </tbody>
   </table>
 
@@ -198,172 +201,104 @@
     </ul>
   </div>
 
-  <canvas id="confetti"></canvas>
+<script>
+  const roleta = document.getElementById("roleta");
+  const numFatias = 12;
+  const anguloPorFatia = 360 / numFatias;
+  let rotacaoAtual = 0;
+  const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "EXEMPLO_ID";
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script>
-    const telegram_id = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-    const sliceAngle = 360 / 10;
-    const prizes = {
-      1: "5 pontos",
-      2: "10 pontos",
-      3: "15 pontos",
-      4: "Tente outra vez",
-      5: "5 pontos",
-      6: "10 pontos",
-      7: "15 pontos",
-      8: "Gire denovo",
-      9: "20 pontos",
-      10: "25 pontos"
-    };
+  async function carregarSaldo() {
+    try {
+      const res = await fetch(`/api/usuarios/${telegram_id}`);
+      const user = await res.json();
 
-    const wheel = document.getElementById("wheel");
+      document.getElementById("pontos").innerText = user.pontos ?? 0;
 
-    for (let i = 0; i < 10; i++) {
-  const slice = document.createElement("div");
-  slice.className = "slice";
-  slice.style.transform = `rotate(${i * sliceAngle}deg) skewY(-54deg)`;
-  slice.style.background = i % 2 === 0 ? "#a5d6a7" : "#c5e1c4";
+      let tickets = 0;
+      if (user.vip) {
+        const giroRes = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
+        const girouHoje = await giroRes.json();
+        tickets = girouHoje.girou ? 0 : 1;
+      }
 
-  const label = document.createElement("span");
-  label.innerText = i + 1;
-  label.style.position = "absolute";
-  label.style.top = "50%";
-  label.style.left = "100%";
-  label.style.transform = "translate(-50%, -50%) rotate(-18deg)";
-  label.style.transformOrigin = "0% 0%";
-  label.style.fontWeight = "bold";
-  label.style.fontSize = "14px";
-  label.style.color = "#000";
-  slice.appendChild(label);
+      document.getElementById("tickets").innerText = tickets;
+    } catch (err) {
+      console.error("Erro ao carregar saldo:", err);
+      document.getElementById("tickets").innerText = "Erro";
+      document.getElementById("pontos").innerText = "Erro";
+    }
+  }
 
-  wheel.appendChild(slice);
-}
+  async function carregarHistorico() {
+    try {
+      const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
+      const data = await res.json();
+      const lista = document.getElementById("listaGiros");
+      lista.innerHTML = "";
 
-    async function spin() {
-      const btn = document.getElementById("btnGirar");
-      btn.disabled = true;
+      if (data.length === 0) {
+        lista.innerHTML = "<li>Nenhum giro registrado ainda.</li>";
+        return;
+      }
+
+      data.forEach(g => {
+        const item = document.createElement("li");
+        const dataFormatada = new Date(g.data).toLocaleString("pt-BR");
+        item.innerText = `🎯 ${g.premio} — ${dataFormatada}`;
+        lista.appendChild(item);
+      });
+    } catch (err) {
+      console.error("Erro ao carregar histórico:", err);
+      document.getElementById("listaGiros").innerHTML = "<li>Erro ao carregar.</li>";
+    }
+  }
+
+  document.getElementById("botaoGirar").addEventListener("click", async () => {
+    const btn = document.getElementById("botaoGirar");
+    btn.disabled = true;
+
+    const giros = 5 + Math.floor(Math.random() * 3);
+    const resultadoIndex = Math.floor(Math.random() * numFatias);
+    const anguloFinal = 360 * giros + (360 - resultadoIndex * anguloPorFatia - anguloPorFatia / 2);
+
+    rotacaoAtual += anguloFinal;
+    roleta.style.transform = `rotate(${rotacaoAtual}deg)`;
+
+    setTimeout(async () => {
+      const resultado = resultadoIndex + 1;
+      document.getElementById("resultado").textContent = `Resultado: ${resultado}`;
 
       try {
-        const rotation = 3600 + Math.random() * 360;
-        wheel.style.transition = "transform 4s ease-out";
-        wheel.style.transform = `rotate(${rotation}deg)`;
+        const res = await fetch("/api/roleta/girar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ telegram_id, premio_id: resultado })
+        });
 
-        const selected = Math.floor(((rotation % 360) / sliceAngle)) % 10 + 1;
-        const resultado = prizes[selected];
+        const data = await res.json();
 
-        setTimeout(async () => {
-          document.getElementById("result").innerText = `🎁 Resultado: ${resultado}`;
+        if (!res.ok) {
+          alert("Erro ao girar: " + (data?.erro || "Falha desconhecida"));
+        } else {
+          alert(`🎉 Você ganhou: ${data.premio}`);
+        }
 
-          const res = await fetch("/api/roleta/girar", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ telegram_id, premio_id: selected })
-          });
+        carregarSaldo();
+        carregarHistorico();
+        btn.disabled = false;
 
-          const data = await res.json();
-
-          if (!res.ok) {
-            alert("Erro ao girar: " + (data?.erro || "Falha desconhecida"));
-            btn.disabled = false;
-            return;
-          }
-
-          startConfetti();
-          carregarSaldo();
-          carregarHistorico();
-
-          alert(`🎉 ${resultado}`);
-          btn.disabled = false;
-        }, 4000);
       } catch (err) {
+        console.error("Erro ao enviar giro:", err);
         alert("⚠️ Erro ao girar.");
-        console.error(err);
         btn.disabled = false;
       }
-    }
+    }, 5000);
+  });
 
-    async function carregarSaldo() {
-      try {
-        const res = await fetch(`/api/usuarios/${telegram_id}`);
-        const user = await res.json();
-
-        document.getElementById("pontos").innerText = user.pontos || 0;
-
-        let tickets = 0;
-        if (user.vip) {
-          const giroRes = await fetch(`/api/roleta/hoje?telegram_id=${telegram_id}`);
-          const girouHoje = await giroRes.json();
-          tickets = girouHoje.girou ? 0 : 1;
-        }
-
-        document.getElementById("tickets").innerText = tickets;
-      } catch (err) {
-        console.error("Erro ao carregar saldo:", err);
-        document.getElementById("tickets").innerText = "Erro";
-        document.getElementById("pontos").innerText = "Erro";
-      }
-    }
-
-    async function carregarHistorico() {
-      try {
-        const res = await fetch(`/api/roleta/historico?telegram_id=${telegram_id}`);
-        const data = await res.json();
-        const lista = document.getElementById("listaGiros");
-        lista.innerHTML = "";
-
-        if (data.length === 0) {
-          lista.innerHTML = "<li>Nenhum giro registrado ainda.</li>";
-          return;
-        }
-
-        data.forEach(g => {
-          const item = document.createElement("li");
-          item.innerText = `🎯 ${g.premio} — ${new Date(g.data).toLocaleString()}`;
-          lista.appendChild(item);
-        });
-      } catch (err) {
-        console.error("Erro ao carregar histórico:", err);
-        document.getElementById("listaGiros").innerHTML = "<li>Erro ao carregar.</li>";
-      }
-    }
-
-    // 🎉 Confetti
-    function startConfetti() {
-      const canvas = document.getElementById('confetti');
-      const ctx = canvas.getContext('2d');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      canvas.style.display = 'block';
-
-      const confettis = Array.from({ length: 150 }, () => ({
-        x: Math.random() * canvas.width,
-        y: -10,
-        r: Math.random() * 5 + 2,
-        d: Math.random() * 10 + 2,
-        color: `hsl(${Math.random() * 360}, 70%, 60%)`,
-      }));
-
-      function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confettis.forEach(c => {
-          ctx.beginPath();
-          ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
-          ctx.fillStyle = c.color;
-          ctx.fill();
-          c.y += c.d;
-        });
-      }
-
-      const interval = setInterval(draw, 30);
-      setTimeout(() => {
-        clearInterval(interval);
-        canvas.style.display = 'none';
-      }, 5000);
-    }
-
-    carregarSaldo();
-    carregarHistorico();
-  </script>
+  // Inicialização
+  carregarSaldo();
+  carregarHistorico();
+</script>
 </body>
 </html>
