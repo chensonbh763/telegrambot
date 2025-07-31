@@ -197,7 +197,7 @@
   <script>
     //const urlParams = new URLSearchParams(window.location.search);
     //const telegram_id = urlParams.get("id");
- const telegramID = tg.initDataUnsafe?.user?.id
+ const telegram_id = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
     const roleta = document.getElementById("roleta");
     const botaoGirar = document.getElementById("botaoGirar");
     const resultado = document.getElementById("resultado");
