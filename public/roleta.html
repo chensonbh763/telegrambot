@@ -13,19 +13,27 @@
       text-align: center;
     }
 
-    nav {
-      background-color: #3498db;
-      padding: 10px;
-      display: flex;
-      justify-content: space-around;
+    .top-menu {
+      background: #2a8f43;
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      border-radius: 6px;
     }
-
-    nav a {
+    .top-menu a {
       color: white;
       text-decoration: none;
+      margin: 0 15px;
       font-weight: bold;
+      font-size: 16px;
     }
-
+    .top-menu a:hover {
+      text-decoration: underline;
+    }
     h1 {
       margin-top: 20px;
     }
