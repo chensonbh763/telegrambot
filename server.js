@@ -179,9 +179,9 @@ app.post("/api/roleta/girar", async (req, res) => {
 
     // Registra o giro
     await pool.query(
-      "INSERT INTO roleta_giros (telegram_id, premio) VALUES ($1, $2)",
-      [telegram_id, premios[premio_id].tipo]
-    );
+  "INSERT INTO roleta_giros (telegram_id, premio, pontos_ganhos) VALUES ($1, $2, $3)",
+  [telegram_id, premio.tipo, premio.tipo === "pontos" ? premio.valor : 0]
+);
 
     res.json({ mensagem: "Giro registrado", premio: premio.tipo, valor: premio.valor, tipo: premio.tipo });
                        }catch (err) {
@@ -201,9 +201,9 @@ app.get("/api/roleta/hoje", async (req, res) => {
 app.get("/api/roleta/historico", async (req, res) => {
   const { telegram_id } = req.query;
   const { rows } = await pool.query(
-    "SELECT premio, data FROM roleta_giros WHERE telegram_id = $1 ORDER BY data DESC LIMIT 10",
-    [telegram_id]
-  );
+  "SELECT premio, pontos_ganhos, data FROM roleta_giros WHERE telegram_id = $1 ORDER BY data DESC LIMIT 10",
+  [telegram_id]
+);
   res.json(rows);
 });
 
