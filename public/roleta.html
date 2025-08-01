@@ -279,8 +279,12 @@
         });
 
         const data = await res.json();
-        resultado.textContent = data.erro || `Resultado: ${data.premio}`;
-
+        if (data.erro) {
+          resultado.textContent = `❌ ${data.erro}`;
+         } else {
+          resultado.textContent = `🎁 Você ganhou: ${data.valor} ${data.tipo === 'pontos' ? 'pontos' : ''}`;
+}
+  
         carregarUsuario();
         carregarHistorico();
         if (!data.erro) dispararConfete();
