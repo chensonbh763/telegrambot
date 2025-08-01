@@ -183,8 +183,8 @@ app.post("/api/roleta/girar", async (req, res) => {
       [telegram_id, premios[premio_id].tipo]
     );
 
-    res.json({ mensagem: "Giro registrado", premio: premios[premio_id].tipo });
-  } catch (err) {
+    res.json({ mensagem: "Giro registrado", premio: premio.tipo, valor: premio.valor, tipo: premio.tipo });
+                       }catch (err) {
     console.error("Erro ao girar roleta:", err.message);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
