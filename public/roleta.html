@@ -236,7 +236,13 @@
       lista.innerHTML = "";
       giros.forEach(g => {
         const li = document.createElement("li");
-        li.textContent = `🎁 ${g.premio} - ${new Date(g.data).toLocaleString()}`;
+       if (g.premio === "pontos") {
+  li.textContent = `🎁 ${g.pontos_ganhos} pontos - ${new Date(g.data).toLocaleString()}`;
+} else {
+  li.textContent = `😕 Nenhum prêmio - ${new Date(g.data).toLocaleString()}`;
+  }
+        
+        //li.textContent = `🎁 ${g.premio} - ${new Date(g.data).toLocaleString()}`;
         lista.appendChild(li);
       });
     } catch (err) {
