@@ -148,6 +148,16 @@ app.post("/api/roleta/girar", async (req, res) => {
 
     const user = userRes.rows[0];
 
+    // Limite diário de giros (VIP e não VIP)
+    const limiteGirosDiarios = 5;
+    const girosHoje = await pool.query(
+      `SELECT COUNT(*) FROM roleta_giros WHERE telegram_id = $1 AND DATE(data) = CURRENT_DATE`,
+      [telegram_id]
+    );
+    if (parseInt(girosHoje.rows[0].count) >= limiteGirosDiarios) {
+      return res.status(400).json({ erro: `Limite diário de ${limiteGirosDiarios} giros atingido.` });
+    }
+
     // Verifica se é VIP e se já girou grátis hoje
     let usouTicketGratuito = false;
     const vip = user.vip;
@@ -177,14 +187,20 @@ app.post("/api/roleta/girar", async (req, res) => {
       await pool.query("UPDATE usuarios SET pontos = pontos + $1 WHERE telegram_id = $2", [premio.valor, telegram_id]);
     }
 
-    // Registra o giro
+    // Registra o giro na roleta
     await pool.query(
-  "INSERT INTO roleta_giros (telegram_id, premio, pontos_ganhos) VALUES ($1, $2, $3)",
-  [telegram_id, premio.tipo, premio.tipo === "pontos" ? premio.valor : 0]
-);
+      "INSERT INTO roleta_giros (telegram_id, premio, pontos_ganhos) VALUES ($1, $2, $3)",
+      [telegram_id, premio.tipo, premio.tipo === "pontos" ? premio.valor : 0]
+    );
 
-    res.json({ mensagem: "Giro registrado", premio: premio.tipo, valor: premio.valor, tipo: premio.tipo });
-                       }catch (err) {
+    res.json({
+      mensagem: "Giro registrado",
+      premio: premio.tipo,
+      valor: premio.valor,
+      tipo: premio.tipo
+    });
+
+  } catch (err) {
     console.error("Erro ao girar roleta:", err.message);
     res.status(500).json({ erro: "Erro interno no servidor." });
   }
