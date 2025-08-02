@@ -93,22 +93,16 @@
     <p>Seus pontos: <strong id="pontos">0</strong> (<span id="reais">R$0,00</span>)</p>
     <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
 
-    <form id="formSaque">
-      <input type="text" id="nome" placeholder="Seu nome completo" required />
-      <input type="text" id="cpf" placeholder="CPF (apenas números)" required />
-      <input type="text" id="pix" placeholder="Chave PIX (email, tel, CPF...)" required />
-      <button type="submit" id="btnSaque" disabled>Solicitar Saque</button>
-    </form>
-    <p id="status"></p>
-  </div>
-<hr>
-<a href="https://www.mfuture.com.br/lucremais/ajuda.html#saques" target="_blank" style="text-decoration: none;">
-  <button style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer;">
-    ❓ Dúvidas sobre Saques
-  </button>
-</a>
+<form id="formSaque">
+  <input type="text" id="nome" placeholder="Seu nome completo" required />
+  <input type="text" id="cpf" placeholder="CPF (apenas números)" required />
+  <input type="text" id="pix" placeholder="Chave PIX (email, tel, CPF...)" required />
+  <button type="submit" id="btnSaque" disabled>Solicitar Saque</button>
+</form>
+<button onclick="window.open('https://www.mfuture.com.br/lucremais/ajuda.html#saques', '_blank')">❓ Dúvidas sobre Saques</button>
+<p id="status"></p>
+</div>
 
-  <hr>
   <h3>📜 Histórico de Saques</h3>
   <div id="historico">
     <p>Carregando histórico...</p>
