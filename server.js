@@ -370,7 +370,27 @@ app.post("/admin/sql", async (req, res) => {
 });
 
 // 🔹 8. Telegram Bot
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const express = require("express");
+const TelegramBot = require("node-telegram-bot-api");
+
+const app = express();
+app.use(express.json()); // Necessário para processar req.body
+
+const bot = new TelegramBot(process.env.BOT_TOKEN);
+
+// Endpoint que o Telegram vai chamar
+app.post("/", (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// Define o Webhook no Telegram
+async function initBot() {
+  await bot.setWebHook(`${process.env.BASE_URL}/`);
+  console.log("✅ Webhook definido com sucesso!");
+}
+initBot();
+
 const GRUPO_VIP_ID = -1002605364157; // ID do grupo VIP
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
@@ -396,7 +416,6 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       );
 
       if (check.rowCount === 0) {
-        // ⚠️ IP do usuário (pode ser substituído por IP real se capturado via bot)
         const ip = msg?.web_app_data?.ip || "0.0.0.0";
 
         const ipCount = await pool.query(
@@ -413,7 +432,6 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
             [indicadorId, indicadoId, ip]
           );
 
-          // Dá 5 pontos para quem foi indicado
           await pool.query(
             `UPDATE usuarios SET pontos = COALESCE(pontos, 0) + 5 WHERE telegram_id = $1`,
             [indicadoId]
@@ -427,34 +445,31 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
     }
 
     // Verifica se o usuário está no grupo VIP e atualiza no banco
-try {
-  const member = await bot.getChatMember(GRUPO_VIP_ID, chatId);
-  const status = member?.status;
+    try {
+      const member = await bot.getChatMember(GRUPO_VIP_ID, chatId);
+      const status = member?.status;
 
-  const isVip = status === "member" || status === "administrator" || status === "creator";
+      const isVip = status === "member" || status === "administrator" || status === "creator";
 
-  await pool.query(
-    "UPDATE usuarios SET vip = $1 WHERE telegram_id = $2",
-    [isVip, chatId]
-  );
+      await pool.query(
+        "UPDATE usuarios SET vip = $1 WHERE telegram_id = $2",
+        [isVip, chatId]
+      );
+    } catch (err) {
+      console.error("Erro ao verificar status VIP:", err.message);
+    }
 
-} catch (err) {
-  console.error("Erro ao verificar status VIP:", err.message);
-  // Continua sem falhar, apenas loga
-}
-
-// Abertura do Mini App
-bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
-  reply_markup: {
-    inline_keyboard: [[
-      {
-        text: "📲 Abrir Mini App",
-        web_app: { url: `https://telegrambot-mlfd.onrender.com/?id=${chatId}` }
+    // Abertura do Mini App
+    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: "📲 Abrir Mini App",
+            web_app: { url: `https://telegrambot-mlfd.onrender.com/?id=${chatId}` }
+          }
+        ]]
       }
-    ]]
-  }
-});
-
+    });
 
   } catch (err) {
     console.error("Erro no bot:", err.message);
