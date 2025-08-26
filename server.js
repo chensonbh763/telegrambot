@@ -449,7 +449,7 @@ bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas di
     inline_keyboard: [[
       {
         text: "📲 Abrir Mini App",
-        web_app: { url: `https://web-production-10f9d.up.railway.app?id=${chatId}` }
+        web_app: { url: `https://telegrambot-mlfd.onrender.com/?id=${chatId}` }
       }
     ]]
   }
