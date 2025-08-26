@@ -369,29 +369,22 @@ app.post("/admin/sql", async (req, res) => {
   }
 });
 
-// 🔹 8. Telegram Bot
-const express = require("express");
+// 🔹 8. Telegram Bot com Webhook
 const TelegramBot = require("node-telegram-bot-api");
-
-const app = express();
-app.use(express.json()); // Necessário para processar req.body
-
 const bot = new TelegramBot(process.env.BOT_TOKEN);
 
-// Endpoint que o Telegram vai chamar
 app.post("/", (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
 
-// Define o Webhook no Telegram
 async function initBot() {
   await bot.setWebHook(`${process.env.BASE_URL}/`);
   console.log("✅ Webhook definido com sucesso!");
 }
 initBot();
 
-const GRUPO_VIP_ID = -1002605364157; // ID do grupo VIP
+const GRUPO_VIP_ID = -1002605364157;
 
 bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
@@ -400,7 +393,6 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
   const nome = msg.from.first_name;
 
   try {
-    // Cria usuário se ainda não existir
     await pool.query(
       `INSERT INTO usuarios (telegram_id, nome)
        VALUES ($1, $2)
@@ -408,7 +400,6 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       [indicadoId, nome]
     );
 
-    // Verifica se é indicação válida
     if (indicadorId && indicadorId !== indicadoId.toString()) {
       const check = await pool.query(
         "SELECT * FROM indicacoes WHERE id_indicado = $1",
@@ -444,11 +435,9 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       }
     }
 
-    // Verifica se o usuário está no grupo VIP e atualiza no banco
     try {
       const member = await bot.getChatMember(GRUPO_VIP_ID, chatId);
       const status = member?.status;
-
       const isVip = status === "member" || status === "administrator" || status === "creator";
 
       await pool.query(
@@ -459,7 +448,6 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       console.error("Erro ao verificar status VIP:", err.message);
     }
 
-    // Abertura do Mini App
     bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
       reply_markup: {
         inline_keyboard: [[
