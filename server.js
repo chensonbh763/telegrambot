@@ -370,7 +370,6 @@ app.post("/admin/sql", async (req, res) => {
 });
 
 // 🔹 8. Telegram Bot com Webhook
-const TelegramBot = require("node-telegram-bot-api");
 const bot = new TelegramBot(process.env.BOT_TOKEN);
 
 app.post("/", (req, res) => {
