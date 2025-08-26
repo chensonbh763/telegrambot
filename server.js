@@ -447,16 +447,18 @@ bot.onText(/\/start(?:\s+(\d+))?/, async (msg, match) => {
       console.error("Erro ao verificar status VIP:", err.message);
     }
 
-    bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
-      reply_markup: {
-        inline_keyboard: [[
-          {
-            text: "📲 Abrir Mini App",
-            web_app: { url: `https://telegrambot-mlfd.onrender.com/?id=${chatId}` }
-          }
-        ]]
+bot.sendMessage(chatId, "👋 Bem-vindo ao LucreMaisTask! Acesse suas tarefas diárias:", {
+  reply_markup: {
+    inline_keyboard: [[
+      {
+        text: "📲 Abrir Mini App",
+        web_app: {
+          url: `https://telegrambot-mlfd.onrender.com/?id=${chatId}`
+        }
       }
-    });
+    ]]
+  }
+});
 
   } catch (err) {
     console.error("Erro no bot:", err.message);
