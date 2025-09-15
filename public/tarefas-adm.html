@@ -64,7 +64,7 @@
       <button onclick="cancelarEdicao()" style="background:#999;">Cancelar</button>
     </div>
   </div>
-<!-- ... Todo o seu HTML anterior continua igual até o final do </script> -->
+
 
   <div class="card">
     <h3>📌 Tabela de Referência de Pontos (Insta Mais)</h3>
@@ -119,123 +119,120 @@
 </body>
 </html>
 
-  <script>
-    async function carregarTarefas() {
-      const sql = "SELECT * FROM tarefas ORDER BY id DESC";
-      const res = await fetch("/admin/sql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql })
-      });
-      const data = await res.json();
-const tbody = document.querySelector("#tabelaTarefas tbody");
-tbody.innerHTML = "";
-data.forEach(t => {
-  tbody.innerHTML += `
-    <tr>
-      <td>${t.id}</td>
-      <td>${t.titulo}</td>
-      <td>${t.pontos}</td>
-      <td>${t.ativa ? '✅' : '❌'}</td>
-      <td>
-        <button onclick="editarTarefa(${t.id}, \`${t.titulo}\`, \`${t.link}\`, ${t.pontos}, ${t.ativa})">✏️ Editar</button>
-        <button onclick="desativarTarefa(${t.id})">❌ Desativar</button>
-        ${!t.ativa ? `<button onclick="ativarTarefa(${t.id})">✅ Ativar</button>` : ''}
-        <button onclick="excluirTarefa(${t.id})" style="background:#d9534f;">🗑️ Excluir</button>
-      </td>
-    </tr>
-  `;
-});
+<script>
+  async function carregarTarefas() {
+    const sql = "SELECT * FROM tarefas ORDER BY id DESC";
+    const res = await fetch("/admin/sql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql })
+    });
+    const data = await res.json();
+    const tbody = document.querySelector("#tabelaTarefas tbody");
+    tbody.innerHTML = "";
+    data.forEach(t => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${t.id}</td>
+          <td>${t.titulo}</td>
+          <td>${t.pontos}</td>
+          <td>${t.ativa ? '✅' : '❌'}</td>
+          <td>
+            <button onclick="editarTarefa(${t.id}, \`${t.titulo}\`, \`${t.link}\`, ${t.pontos}, ${t.ativa})">✏️ Editar</button>
+            <button onclick="desativarTarefa(${t.id})">❌ Desativar</button>
+            ${!t.ativa ? `<button onclick="ativarTarefa(${t.id})">✅ Ativar</button>` : ''}
+            <button onclick="excluirTarefa(${t.id})" style="background:#d9534f;">🗑️ Excluir</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
-
-
-    async function desativarTarefa(id) {
-      if (!confirm("Deseja realmente desativar essa tarefa?")) return;
-      const sql = `UPDATE tarefas SET ativa = false WHERE id = ${id}`;
-      await fetch("/admin/sql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql })
-      });
-      carregarTarefas();
-    }
-
-
-async function excluirTarefa(id) {
-  if (!confirm("Tem certeza que deseja excluir esta tarefa? Essa ação não pode ser desfeita.")) return;
-  const sql = `DELETE FROM tarefas WHERE id = ${id}`;
-  await fetch("/admin/sql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sql })
-  });
-  alert("Tarefa excluída!");
-  carregarTarefas();
-}
-
-async function ativarTarefa(id) {
-  const sql = `UPDATE tarefas SET ativa = true WHERE id = ${id}`;
-  await fetch("/admin/sql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sql })
-  });
-  carregarTarefas();
-}
-
-
-
-    async function criarTarefa() {
-      const titulo = document.getElementById("titulo").value;
-      const link = document.getElementById("link").value;
-      const pontos = document.getElementById("pontos").value;
-      const dia = document.getElementById("dia").value || '1';
-
-      const sql = `INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ('${titulo}', '${link}', ${dia}, ${pontos}, true)`;
-      await fetch("/admin/sql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql })
-      });
-
-      alert("Tarefa criada!");
-      carregarTarefas();
-    }
-
-    function editarTarefa(id, titulo, link, pontos, ativa) {
-      document.getElementById("edit_id").value = id;
-      document.getElementById("edit_titulo").value = titulo;
-      document.getElementById("edit_link").value = link;
-      document.getElementById("edit_pontos").value = pontos;
-      document.getElementById("edit_ativa").checked = ativa;
-      document.getElementById("edicaoBox").style.display = "block";
-      window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    function cancelarEdicao() {
-      document.getElementById("edicaoBox").style.display = "none";
-    }
-
-    async function salvarEdicao() {
-      const id = document.getElementById("edit_id").value;
-      const titulo = document.getElementById("edit_titulo").value;
-      const link = document.getElementById("edit_link").value;
-      const pontos = document.getElementById("edit_pontos").value;
-      const ativa = document.getElementById("edit_ativa").checked;
-
-      const sql = `UPDATE tarefas SET titulo='${titulo}', link='${link}', pontos=${pontos}, ativa=${ativa} WHERE id=${id}`;
-      await fetch("/admin/sql", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql })
-      });
-
-      alert("Tarefa atualizada!");
-      cancelarEdicao();
-      carregarTarefas();
-    }
-
+  async function desativarTarefa(id) {
+    if (!confirm("Deseja realmente desativar essa tarefa?")) return;
+    const sql = `UPDATE tarefas SET ativa = false WHERE id = ${id}`;
+    await fetch("/admin/sql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql })
+    });
     carregarTarefas();
-  </script>
+  }
+
+  async function ativarTarefa(id) {
+    const sql = `UPDATE tarefas SET ativa = true WHERE id = ${id}`;
+    await fetch("/admin/sql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql })
+    });
+    carregarTarefas();
+  }
+
+  async function excluirTarefa(id) {
+    if (!confirm("Tem certeza que deseja excluir esta tarefa? Essa ação não pode ser desfeita.")) return;
+    const sql = `DELETE FROM tarefas WHERE id = ${id}`;
+    await fetch("/admin/sql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql })
+    });
+    alert("Tarefa excluída!");
+    carregarTarefas();
+  }
+
+  async function criarTarefa() {
+    const titulo = document.getElementById("titulo").value;
+    const link = document.getElementById("link").value;
+    const pontos = document.getElementById("pontos").value;
+    const dia = document.getElementById("dia").value || '1';
+
+    const sql = `INSERT INTO tarefas (titulo, link, dia, pontos, ativa) VALUES ('${titulo}', '${link}', ${dia}, ${pontos}, true)`;
+    await fetch("/admin/sql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql })
+    });
+
+    alert("Tarefa criada!");
+    carregarTarefas();
+  }
+
+  function editarTarefa(id, titulo, link, pontos, ativa) {
+    document.getElementById("edit_id").value = id;
+    document.getElementById("edit_titulo").value = titulo;
+    document.getElementById("edit_link").value = link;
+    document.getElementById("edit_pontos").value = pontos;
+    document.getElementById("edit_ativa").checked = ativa;
+    document.getElementById("edicaoBox").style.display = "block";
+    window.scrollTo(0, document.body.scrollHeight);
+  }
+
+  function cancelarEdicao() {
+    document.getElementById("edicaoBox").style.display = "none";
+  }
+
+  async function salvarEdicao() {
+    const id = document.getElementById("edit_id").value;
+    const titulo = document.getElementById("edit_titulo").value;
+    const link = document.getElementById("edit_link").value;
+    const pontos = document.getElementById("edit_pontos").value;
+    const ativa = document.getElementById("edit_ativa").checked;
+
+    const sql = `UPDATE tarefas SET titulo='${titulo}', link='${link}', pontos=${pontos}, ativa=${ativa} WHERE id=${id}`;
+    await fetch("/admin/sql", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sql })
+    });
+
+    alert("Tarefa atualizada!");
+    cancelarEdicao();
+    carregarTarefas();
+  }
+
+  carregarTarefas();
+</script>
+
 </body>
 </html>
