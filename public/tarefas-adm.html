@@ -128,23 +128,26 @@
         body: JSON.stringify({ sql })
       });
       const data = await res.json();
-      const tbody = document.querySelector("#tabelaTarefas tbody");
-      tbody.innerHTML = "";
-      data.forEach(t => {
-        tbody.innerHTML += `
-          <tr>
-            <td>${t.id}</td>
-            <td>${t.titulo}</td>
-            <td>${t.pontos}</td>
-            <td>${t.ativa ? '✅' : '❌'}</td>
-            <td>
-              <button onclick="editarTarefa(${t.id}, \`${t.titulo}\`, \`${t.link}\`, ${t.pontos}, ${t.ativa})">✏️ Editar</button>
-              <button onclick="desativarTarefa(${t.id})">❌ Desativar</button>
-            </td>
-          </tr>
-        `;
-      });
-    }
+const tbody = document.querySelector("#tabelaTarefas tbody");
+tbody.innerHTML = "";
+data.forEach(t => {
+  tbody.innerHTML += `
+    <tr>
+      <td>${t.id}</td>
+      <td>${t.titulo}</td>
+      <td>${t.pontos}</td>
+      <td>${t.ativa ? '✅' : '❌'}</td>
+      <td>
+        <button onclick="editarTarefa(${t.id}, \`${t.titulo}\`, \`${t.link}\`, ${t.pontos}, ${t.ativa})">✏️ Editar</button>
+        <button onclick="desativarTarefa(${t.id})">❌ Desativar</button>
+        ${!t.ativa ? `<button onclick="ativarTarefa(${t.id})">✅ Ativar</button>` : ''}
+        <button onclick="excluirTarefa(${t.id})" style="background:#d9534f;">🗑️ Excluir</button>
+      </td>
+    </tr>
+  `;
+});
+
+
 
     async function desativarTarefa(id) {
       if (!confirm("Deseja realmente desativar essa tarefa?")) return;
@@ -156,6 +159,31 @@
       });
       carregarTarefas();
     }
+
+
+async function excluirTarefa(id) {
+  if (!confirm("Tem certeza que deseja excluir esta tarefa? Essa ação não pode ser desfeita.")) return;
+  const sql = `DELETE FROM tarefas WHERE id = ${id}`;
+  await fetch("/admin/sql", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql })
+  });
+  alert("Tarefa excluída!");
+  carregarTarefas();
+}
+
+async function ativarTarefa(id) {
+  const sql = `UPDATE tarefas SET ativa = true WHERE id = ${id}`;
+  await fetch("/admin/sql", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql })
+  });
+  carregarTarefas();
+}
+
+
 
     async function criarTarefa() {
       const titulo = document.getElementById("titulo").value;
