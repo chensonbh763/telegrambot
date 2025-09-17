@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tarefas Externas - LucreMaisTask</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Ganhe pontos completando tarefas externas com AdGem. Sistema VIP, saque via PIX e mais!">
+  <link rel="stylesheet" href="/css/style.css" />
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f9f9f9;
+      max-width: 600px;
+      margin: auto;
+      padding: 0;
+    }
+    .top-menu {
+      background: #2a8f43;
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 0;
+      border-radius: 0 0 6px 6px;
+    }
+    .top-menu a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .top-menu a:hover {
+      text-decoration: underline;
+    }
+    .iframe-container {
+      width: 100%;
+      height: calc(100vh - 60px);
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="top-menu">
+    <a href="index.html">🏠 Início</a>
+    <a href="indicacoes.html">👥 Indicações</a>
+    <a href="pontuacao.html">📊 Pontuação</a>
+    <a href="tarefas-externas.html">🧩 Tarefas Externas</a>
+    <a href="saque.html">💰 Saque</a>
+  </nav>
+
+  <iframe
+    class="iframe-container"
+    src="https://api.adgem.com/v1/wall?appid=31150&playerid=telegram_{{telegram_id}}"
+    frameborder="0"
+    allowfullscreen>
+  </iframe>
+
+</body>
+</html>
