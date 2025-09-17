@@ -53,12 +53,26 @@
     <a href="saque.html">💰 Saque</a>
   </nav>
 
-  <iframe
-    class="iframe-container"
-    src="https://api.adgem.com/v1/wall?appid=31150&playerid=telegram_{{telegram_id}}"
-    frameborder="0"
-    allowfullscreen>
-  </iframe>
+<iframe
+  class="iframe-container"
+  id="adgem-frame"
+  src=""
+  frameborder="0"
+  allowfullscreen>
+</iframe>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const telegramId = urlParams.get("id");
+
+  if (telegramId) {
+    const iframe = document.getElementById("adgem-frame");
+    iframe.src = `https://api.adgem.com/v1/wall?appid=31150&playerid=telegram_${telegramId}`;
+  } else {
+    document.body.innerHTML = "<p style='text-align:center; padding:20px;'>❌ ID do usuário não encontrado.</p>";
+  }
+</script>
+
 
 </body>
 </html>
