@@ -239,6 +239,60 @@ app.post("/api/bitlabs/callback", express.json(), async (req, res) => {
 
   res.status(200).send("OK");
 });
+
+
+
+//adgem-callback
+
+app.get("/api/adgem-callback", async (req, res) => {
+  const { userid, amount, offer_id, goal_id, campaign_id, transaction_id } = req.query;
+
+  // Extrai o telegram_id do formato "telegram_123456"
+  const telegram_id = userid?.replace("telegram_", "");
+
+  if (!telegram_id || !amount) {
+    return res.status(400).send("Dados inválidos");
+  }
+
+  const pontos = Math.floor(parseFloat(amount) * 60); // Multiplicador definido na AdGem
+
+  try {
+    // Verifica se essa conversão já foi registrada
+    const check = await pool.query(
+      `SELECT 1 FROM tarefas_concluidas WHERE tarefa_id = $1 AND telegram_id = $2`,
+      [transaction_id, telegram_id]
+    );
+
+    if (check.rows.length > 0) {
+      return res.status(200).send("Tarefa já registrada");
+    }
+
+    // Registra a tarefa como concluída
+    await pool.query(
+      `INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
+       VALUES ($1, $2, $3, NOW())`,
+      [telegram_id, transaction_id, pontos]
+    );
+
+    // Atualiza os pontos do usuário
+    await pool.query(
+      `UPDATE usuarios
+       SET pontos = COALESCE(pontos, 0) + $1,
+           tarefas_feitas = COALESCE(tarefas_feitas, 0) + 1
+       WHERE telegram_id = $2`,
+      [pontos, telegram_id]
+    );
+
+    res.status(200).send("OK");
+  } catch (err) {
+    console.error("Erro no callback AdGem:", err.message);
+    res.status(500).send("Erro interno");
+  }
+});
+
+
+
+
 // 🔹 4. Rotas de Usuário
 app.get("/api/usuarios/:telegram_id", async (req, res) => {
   const { telegram_id } = req.params;
