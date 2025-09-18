@@ -240,13 +240,12 @@ app.post("/api/bitlabs/callback", express.json(), async (req, res) => {
   res.status(200).send("OK");
 });
 
-//cpalead
-
 app.get("/cpalead-postback", async (req, res) => {
-  const { subid, payout, offer_id } = req.query;
+  const { subid, payout, offer_id, campaign_name } = req.query;
 
-  console.log("📥 Postback recebido:", { subid, payout, offer_id });
+  console.log("📥 Postback recebido:", { subid, payout, offer_id, campaign_name });
 
+  // Validação básica
   if (!subid || !payout || !offer_id) {
     console.error("❌ Dados incompletos no postback.");
     return res.status(400).send("❌ Dados incompletos.");
@@ -263,6 +262,7 @@ app.get("/cpalead-postback", async (req, res) => {
   const pontos = Math.round(payoutFloat * 50); // 50 pontos por US$1.00
 
   try {
+    // Verifica se a tarefa já foi registrada
     const check = await pool.query(
       "SELECT * FROM tarefas_concluidas WHERE telegram_id = $1 AND tarefa_id = $2",
       [telegram_id, offer_id]
@@ -273,12 +273,14 @@ app.get("/cpalead-postback", async (req, res) => {
       return res.status(200).send("✅ Tarefa já registrada.");
     }
 
+    // Insere a tarefa com origem e nome
     await pool.query(
-      `INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
-       VALUES ($1, $2, $3, NOW())`,
-      [telegram_id, offer_id, pontos]
+      `INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data, origem, nome_tarefa)
+       VALUES ($1, $2, $3, NOW(), $4, $5)`,
+      [telegram_id, offer_id, pontos, 'cpalead', campaign_name || 'Oferta CPAlead']
     );
 
+    // Atualiza os pontos do usuário
     await pool.query(
       `UPDATE usuarios
        SET pontos = COALESCE(pontos, 0) + $1,
@@ -294,6 +296,7 @@ app.get("/cpalead-postback", async (req, res) => {
     res.status(500).send("❌ Erro interno.");
   }
 });
+
 
 
 
