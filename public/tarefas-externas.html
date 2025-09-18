@@ -72,10 +72,15 @@
     <a href="saque.html">💰 Saque</a>
   </nav>
 
-  <div class="btn-container">
-    <button onclick="mostrarWall('cpalead')">🎯 CPAlead</button>
-    <button onclick="mostrarWall('adgem')">🧩 AdGem</button>
-  </div>
+<div class="btn-container">
+  <button onclick="mostrarWall('cpalead')">🎯 CPAlead</button>
+  <button onclick="mostrarWall('adgem')">🧩 AdGem</button>
+</div>
+
+<div id="adsterra-banner" style="text-align:center; margin:20px 0;">
+  <!-- Banner Adsterra -->
+</div>
+
 
   <iframe class="iframe-container" id="cpalead-frame" src="" frameborder="0" allowfullscreen></iframe>
   <iframe class="iframe-container" id="adgem-frame" src="" frameborder="0" allowfullscreen></iframe>
@@ -95,6 +100,15 @@
       document.getElementById("adgem-frame").style.display = wall === "adgem" ? "block" : "none";
     }
   </script>
-
+<script type="text/javascript">
+	atOptions = {
+		'key' : 'c85343a2d64da08f92bed539a913497d',
+		'format' : 'iframe',
+		'height' : 300,
+		'width' : 160,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/c85343a2d64da08f92bed539a913497d/invoke.js"></script>
 </body>
 </html>
