@@ -240,6 +240,53 @@ app.post("/api/bitlabs/callback", express.json(), async (req, res) => {
   res.status(200).send("OK");
 });
 
+//cpalead
+
+app.get("/cpalead-postback", async (req, res) => {
+  const { subid, payout, offer_id } = req.query;
+
+  if (!subid || !payout || !offer_id) {
+    return res.status(400).send("❌ Dados incompletos.");
+  }
+
+  const telegram_id = subid.replace("telegram_", "");
+  const pontos = Math.round(parseFloat(payout) * 50); // 50 pontos por US$1.00
+
+  try {
+    // Verifica se já foi registrada essa tarefa
+    const check = await pool.query(
+      "SELECT * FROM tarefas_concluidas WHERE telegram_id = $1 AND tarefa_id = $2",
+      [telegram_id, offer_id]
+    );
+
+    if (check.rowCount > 0) {
+      return res.status(200).send("✅ Tarefa já registrada.");
+    }
+
+    // Registra a tarefa
+    await pool.query(
+      `INSERT INTO tarefas_concluidas (telegram_id, tarefa_id, pontos, data)
+       VALUES ($1, $2, $3, NOW())`,
+      [telegram_id, offer_id, pontos]
+    );
+
+    // Atualiza os pontos do usuário
+    await pool.query(
+      `UPDATE usuarios
+       SET pontos = COALESCE(pontos, 0) + $1,
+           tarefas_feitas = COALESCE(tarefas_feitas, 0) + 1
+       WHERE telegram_id = $2`,
+      [pontos, telegram_id]
+    );
+
+    res.status(200).send("✅ Pontos adicionados com sucesso.");
+  } catch (err) {
+    console.error("Erro no postback CPAlead:", err.message);
+    res.status(500).send("❌ Erro interno.");
+  }
+});
+
+
 
 
 //adgem-callback
