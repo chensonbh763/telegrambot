@@ -53,25 +53,32 @@
     <a href="saque.html">💰 Saque</a>
   </nav>
 
-<iframe
-  class="iframe-container"
-  id="adgem-frame"
-  src=""
-  frameborder="0"
-  allowfullscreen>
-</iframe>
+<div style="text-align:center; margin:10px;">
+  <button onclick="showWall('cpalead')">🎯 CPAlead</button>
+  <button onclick="showWall('adgem')">🧩 AdGem</button>
+</div>
+
+<iframe class="iframe-container" id="cpalead-frame" src="" frameborder="0" allowfullscreen style="display:none;"></iframe>
+<iframe class="iframe-container" id="adgem-frame" src="" frameborder="0" allowfullscreen style="display:none;"></iframe>
 
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const telegramId = urlParams.get("id");
 
   if (telegramId) {
-    const iframe = document.getElementById("adgem-frame");
-    iframe.src = `https://api.adgem.com/v1/wall?appid=31150&playerid=telegram_${telegramId}`;
+    document.getElementById("cpalead-frame").src = `https://www.akamaicdn.org/list/XrdSA?subid=telegram_${telegramId}`;
+    document.getElementById("adgem-frame").src = `https://api.adgem.com/v1/wall?appid=31150&playerid=telegram_${telegramId}`;
   } else {
     document.body.innerHTML = "<p style='text-align:center; padding:20px;'>❌ ID do usuário não encontrado.</p>";
   }
+
+  function showWall(wall) {
+    document.getElementById("cpalead-frame").style.display = wall === "cpalead" ? "block" : "none";
+    document.getElementById("adgem-frame").style.display = wall === "adgem" ? "block" : "none";
+  }
 </script>
+
+
 
 
 </body>
