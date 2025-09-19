@@ -15,36 +15,29 @@
   }
 
   /* Novo menu em duas linhas */
-.top-menu {
-  background: #2a8f43;
-  padding: 6px 0; /* menos padding vertical */
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 16px;
-  border-radius: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 10px; /* menos espaço entre linhas e entre colunas */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.top-menu a {
+.menu-grid a {
+  background: #2a8f43;
   color: white;
   text-decoration: none;
   font-weight: bold;
   font-size: 15px;
-  padding: 6px 10px; /* menos altura nos botões */
+  padding: 12px 8px;
+  border-radius: 6px;
+  text-align: center;
   white-space: nowrap;
-  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.top-menu a:hover {
-  text-decoration: underline;
+.menu-grid a:hover {
+  background: #1e6e34;
 }
-
-
 
 
 
@@ -115,13 +108,16 @@
 </head>
 <body>
   <!-- MENU SUPERIOR -->
-<nav class="top-menu">
+<div class="menu-grid">
   <a href="index.html">🏠 Início</a>
   <a href="indicacoes.html">👥 Indicações</a>
   <a href="pontuacao.html">📊 Pontuação</a>
-  <a href="tarefas-externas.html">🧩 Tarefas Externas</a>
+  <a href="tarefas-externas.html">🧩 Tarefas</a>
   <a href="saque.html">💰 Saque</a>
-</nav>
+</div>
+
+
+
 
 
 
