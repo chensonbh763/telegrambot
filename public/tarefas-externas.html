@@ -15,47 +15,50 @@
       background: #f9f9f9;
       max-width: 600px;
       margin: auto;
-      padding: 0;
+      padding: 20px; /* igual às outras páginas */
     }
- .top-menu {
-  background: #2a8f43;
-  padding: 6px 0; /* menos padding vertical */
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 16px;
-  border-radius: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 10px; /* menos espaço entre linhas e entre colunas */
-}
 
-.top-menu a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 15px;
-  padding: 6px 10px; /* menos altura nos botões */
-  white-space: nowrap;
-  border-radius: 4px;
-}
-
-.top-menu a:hover {
-  text-decoration: underline;
-}
-
-    .iframe-container {
-      width: 100%;
-      height: calc(100vh - 60px);
-      border: none;
-      display: none;
+    .top-menu {
+      background: #2a8f43;
+      padding: 6px 0;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 4px 10px;
     }
+
+    .top-menu a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 15px;
+      padding: 6px 10px;
+      white-space: nowrap;
+      border-radius: 4px;
+    }
+
+    .top-menu a:hover {
+      text-decoration: underline;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
     .btn-container {
       text-align: center;
       margin: 15px 0;
     }
+
     .btn-container button {
       background: #2a8f43;
       color: white;
@@ -66,8 +69,17 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     .btn-container button:hover {
       background: #1e6e34;
+    }
+
+    .iframe-container {
+      width: 100%;
+      height: calc(100vh - 180px);
+      border: none;
+      display: none;
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -81,30 +93,36 @@
     <a href="saque.html">💰 Saque</a>
   </nav>
 
-<div class="btn-container">
-  <button onclick="mostrarWall('cpalead')">🎯 CPAlead</button>
-  <button onclick="mostrarWall('adgem')">🧩 AdGem</button>
-</div>
+  <div class="card">
+    <h2>🧩 Escolha sua Tarefa Externa</h2>
+    <p>Complete tarefas nos parceiros abaixo e acumule pontos automaticamente em sua conta!</p>
+    <div class="btn-container">
+      <button onclick="mostrarWall('cpalead')">🎯 CPAlead</button>
+      <button onclick="mostrarWall('adgem')">🧩 AdGem</button>
+    </div>
+  </div>
 
-<div id="adsterra-banner" style="text-align:center; margin:20px 0;">
-  <!-- Banner Adsterra -->
+  <div class="card" style="text-align:center;">
+    <h3>📢 Patrocínio</h3>
+    <div id="adsterra-banner" style="margin:15px 0;">
+      <!-- Banner Adsterra -->
+      <script type="text/javascript">
+        atOptions = {
+          'key' : 'c85343a2d64da08f92bed539a913497d',
+          'format' : 'iframe',
+          'height' : 300,
+          'width' : 160,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="//www.highperformanceformat.com/c85343a2d64da08f92bed539a913497d/invoke.js"></script>
+    </div>
+  </div>
 
-<script type="text/javascript">
-	atOptions = {
-		'key' : 'c85343a2d64da08f92bed539a913497d',
-		'format' : 'iframe',
-		'height' : 300,
-		'width' : 160,
-		'params' : {}
-	};
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/c85343a2d64da08f92bed539a913497d/invoke.js"></script>
-
-</div>
-
-
-  <iframe class="iframe-container" id="cpalead-frame" src="" frameborder="0" allowfullscreen></iframe>
-  <iframe class="iframe-container" id="adgem-frame" src="" frameborder="0" allowfullscreen></iframe>
+  <div class="card">
+    <iframe class="iframe-container" id="cpalead-frame" src="" frameborder="0" allowfullscreen></iframe>
+    <iframe class="iframe-container" id="adgem-frame" src="" frameborder="0" allowfullscreen></iframe>
+  </div>
 
   <script>
     const telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
@@ -122,20 +140,20 @@
     }
   </script>
 
-<script>
-  var s = document.createElement('script');
-  s.src = '//im-pd.com/e64/c9f50/mw.min.js?z=9897589&sw=/sw-check-permissions-075f9.js';
-  s.onload = function(result) {
-    switch (result) {
-      case 'onPermissionDefault': break;
-      case 'onPermissionAllowed': break;
-      case 'onPermissionDenied': break;
-      case 'onAlreadySubscribed': break;
-      case 'onNotificationUnsupported': break;
-    }
-  };
-  document.head.appendChild(s);
-</script>
+  <script>
+    var s = document.createElement('script');
+    s.src = '//im-pd.com/e64/c9f50/mw.min.js?z=9897589&sw=/sw-check-permissions-075f9.js';
+    s.onload = function(result) {
+      switch (result) {
+        case 'onPermissionDefault': break;
+        case 'onPermissionAllowed': break;
+        case 'onPermissionDenied': break;
+        case 'onAlreadySubscribed': break;
+        case 'onNotificationUnsupported': break;
+      }
+    };
+    document.head.appendChild(s);
+  </script>
 
 </body>
 </html>
