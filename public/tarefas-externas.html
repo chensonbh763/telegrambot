@@ -15,7 +15,7 @@
       background: #f9f9f9;
       max-width: 600px;
       margin: auto;
-      padding: 20px; /* igual às outras páginas */
+      padding: 20px;
     }
 
     .top-menu {
@@ -30,6 +30,7 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 4px 10px;
+      margin-bottom: 20px;
     }
 
     .top-menu a {
@@ -76,28 +77,32 @@
 
     .iframe-container {
       width: 100%;
-      height: calc(100vh - 180px);
+      min-height: 500px; /* altura mínima para boa visualização */
       border: none;
       display: none;
       border-radius: 6px;
     }
-  .ads-area {
-    text-align: center;
-    margin-top: 40px;
-  }
 
-  .ads-area h3 {
-    font-size: 18px;
-    margin-bottom: 10px;
-  }
+    button {
+      padding: 10px;
+      margin-top: 10px;
+      background: #2a8f43;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 15px;
+    }
 
-  .ads-area a {
-    text-decoration: none;
-  }
+    button:hover {
+      background: #1e6e34;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Menu superior -->
   <nav class="top-menu">
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
@@ -106,6 +111,7 @@
     <a href="saque.html">💰 Saque</a>
   </nav>
 
+  <!-- Card de seleção -->
   <div class="card">
     <h2>🧩 Escolha sua Tarefa Externa</h2>
     <p>Complete tarefas nos parceiros abaixo e acumule pontos automaticamente em sua conta!</p>
@@ -115,14 +121,13 @@
     </div>
   </div>
 
-
-
+  <!-- Card das ofertas -->
   <div class="card">
     <iframe class="iframe-container" id="cpalead-frame" src="" frameborder="0" allowfullscreen></iframe>
     <iframe class="iframe-container" id="adgem-frame" src="" frameborder="0" allowfullscreen></iframe>
   </div>
 
-
+  <!-- Patrocínio -->
   <div class="card" style="text-align:center;">
     <h3>📢 Patrocínio</h3>
     <div id="adsterra-banner" style="margin:15px 0;">
@@ -140,14 +145,18 @@
     </div>
   </div>
 
-  <div class="ads-area">
-    <h3>📣 Quer anunciar aqui?</h3>
-    <p>Divulgue seu produto, curso ou serviço diretamente dentro do nosso bot!</p>
-    <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank">
-      <button>📢 Anunciar Agora</button>
-    </a>
+  <!-- Anuncie Aqui -->
+  <div class="card" style="text-align:center;">
+    <div id="anuncie" style="margin:15px 0;">
+      <h3>📣 Quer anunciar aqui?</h3>
+      <p>Divulgue seu produto, curso ou serviço diretamente dentro do nosso bot!</p>
+      <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank">
+        <button>📢 Anunciar Agora</button>
+      </a>
+    </div>
   </div>
 
+  <!-- Scripts -->
   <script>
     const telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
 
