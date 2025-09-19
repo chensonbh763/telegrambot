@@ -16,21 +16,33 @@
       margin: auto;
       padding: 20px;
     }
- .menu-grid a {
+  .top-menu {
   background: #2a8f43;
+  padding: 6px 0; /* menos padding vertical */
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px; /* menos espaço entre linhas e entre colunas */
+}
+
+.top-menu a {
   color: white;
   text-decoration: none;
   font-weight: bold;
   font-size: 15px;
-  padding: 12px 8px;
-  border-radius: 6px;
-  text-align: center;
+  padding: 6px 10px; /* menos altura nos botões */
   white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 4px;
 }
 
-.menu-grid a:hover {
-  background: #1e6e34;
+.top-menu a:hover {
+  text-decoration: underline;
 }
     .card {
       background: white;
