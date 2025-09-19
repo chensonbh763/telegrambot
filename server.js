@@ -19,13 +19,10 @@ app.get("/", (req, res) => {
 
 // 🔹 3. Rotas de Tarefas
 app.get("/api/tarefas", async (req, res) => {
-  const rawTelegramId = req.query.telegram_id;
+  const telegram_id = req.query.telegram_id;
 
-  // Converte para número se possível
-  const telegram_id = parseInt(rawTelegramId, 10);
-
-  if (isNaN(telegram_id)) {
-    return res.status(400).json({ erro: "telegram_id inválido" });
+  if (!telegram_id || typeof telegram_id !== "string") {
+    return res.status(400).json({ erro: "telegram_id inválido ou ausente" });
   }
 
   try {
@@ -38,8 +35,8 @@ app.get("/api/tarefas", async (req, res) => {
         END AS concluida
       FROM tarefas t
       LEFT JOIN tarefas_concluidas tc 
-        ON t.id::text = tc.tarefa_id -- converte t.id para texto para compatibilidade
-        AND tc.telegram_id::integer = $1 -- converte tc.telegram_id para inteiro
+        ON t.id::text = tc.tarefa_id
+        AND tc.telegram_id = $1
         AND DATE(tc.data) = CURRENT_DATE
       WHERE t.ativa = true
       ORDER BY t.id DESC
@@ -52,6 +49,7 @@ app.get("/api/tarefas", async (req, res) => {
     res.status(500).json({ erro: "Erro ao listar tarefas", detalhe: error.message });
   }
 });
+
 
 
 
