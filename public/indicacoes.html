@@ -5,98 +5,139 @@
   <title>Indicações</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f9f9f9;
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
+<style>
+  body {
+    font-family: sans-serif;
+    background: #f9f9f9;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+  }
+
+  /* Novo menu em duas linhas */
+  .top-menu {
+    background: #2a8f43;
+    padding: 10px 0;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .menu-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 5px 0;
+  }
+
+  .menu-row a {
+    color: white;
+    text-decoration: none;
+    margin: 5px 15px;
+    font-weight: bold;
+    font-size: 16px;
+  }
+
+  .menu-row a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 400px) {
+    .menu-row {
+      flex-direction: column;
+      align-items: center;
     }
-    .top-menu {
-      background: #2a8f43;
-      padding: 10px 0;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      border-radius: 6px;
+
+    .menu-row a {
+      margin: 5px 0;
     }
-    .top-menu a {
-      color: white;
-      text-decoration: none;
-      margin: 0 15px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .top-menu a:hover {
-      text-decoration: underline;
-    }
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    .info {
-      margin: 8px 0;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-    .link-box {
-      background: #e0ffe5;
-      padding: 10px;
-      border-radius: 6px;
-      word-break: break-word;
-      font-size: 15px;
-    }
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      background: #2a8f43;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 15px;
-    }
-    button:hover {
-      background: #1e6e34;
-    }
-    .banner {
-      margin: 15px 0;
-    }
-    .banner img {
-      width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    }
-    .ads-area {
-      text-align: center;
-      margin-top: 40px;
-    }
-    .ads-area h3 {
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-    .ads-area a {
-      text-decoration: none;
-    }
-  </style>
+  }
+
+  .card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+  }
+
+  .info {
+    margin: 8px 0;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .link-box {
+    background: #e0ffe5;
+    padding: 10px;
+    border-radius: 6px;
+    word-break: break-word;
+    font-size: 15px;
+  }
+
+  button {
+    padding: 10px;
+    margin-top: 10px;
+    background: #2a8f43;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 15px;
+  }
+
+  button:hover {
+    background: #1e6e34;
+  }
+
+  .banner {
+    margin: 15px 0;
+  }
+
+  .banner img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+
+  .ads-area {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .ads-area h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .ads-area a {
+    text-decoration: none;
+  }
+</style>
+
 </head>
 <body>
   <!-- MENU SUPERIOR -->
-  <nav class="top-menu">
+<nav class="top-menu">
+  <div class="menu-row">
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
     <a href="pontuacao.html">📊 Pontuação</a>
+  </div>
+  <div class="menu-row">
     <a href="tarefas-externas.html">🧩 Tarefas Externas</a>
     <a href="saque.html">💰 Saque</a>
-  </nav>
+  </div>
+</nav>
+
 
   <!-- BLOCO PRINCIPAL DE INDICAÇÃO -->
   <div class="card">
