@@ -81,6 +81,19 @@
       display: none;
       border-radius: 6px;
     }
+  .ads-area {
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .ads-area h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .ads-area a {
+    text-decoration: none;
+  }
   </style>
 </head>
 <body>
@@ -108,6 +121,8 @@
     <iframe class="iframe-container" id="cpalead-frame" src="" frameborder="0" allowfullscreen></iframe>
     <iframe class="iframe-container" id="adgem-frame" src="" frameborder="0" allowfullscreen></iframe>
   </div>
+
+
   <div class="card" style="text-align:center;">
     <h3>📢 Patrocínio</h3>
     <div id="adsterra-banner" style="margin:15px 0;">
@@ -125,6 +140,13 @@
     </div>
   </div>
 
+  <div class="ads-area">
+    <h3>📣 Quer anunciar aqui?</h3>
+    <p>Divulgue seu produto, curso ou serviço diretamente dentro do nosso bot!</p>
+    <a href="https://www.mfuture.com.br/lucremais/anuncie.html" target="_blank">
+      <button>📢 Anunciar Agora</button>
+    </a>
+  </div>
 
   <script>
     const telegramId = window.Telegram.WebApp.initDataUnsafe?.user?.id || null;
