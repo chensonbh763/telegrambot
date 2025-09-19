@@ -17,36 +17,46 @@
   /* Novo menu em duas linhas */
 .top-menu {
   background: #2a8f43;
-  padding: 10px 0;
-  text-align: center;
+  padding: 10px;
   position: sticky;
   top: 0;
   z-index: 999;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   margin-bottom: 20px;
   border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap; /* permite quebra de linha */
+  justify-content: center;
+  gap: 10px; /* espaçamento entre os itens */
 }
 
 .top-menu a {
-  display: inline-block;
   color: white;
   text-decoration: none;
-  margin: 8px 15px;
   font-weight: bold;
   font-size: 16px;
+  padding: 8px 12px;
+  white-space: nowrap; /* evita quebra dentro do texto */
+  border-radius: 4px;
+  background-color: transparent;
 }
 
 .top-menu a:hover {
   text-decoration: underline;
 }
 
-/* Responsivo para telas pequenas */
+/* Opcional: melhora visual em telas pequenas */
 @media (max-width: 400px) {
+  .top-menu {
+    gap: 6px;
+  }
+
   .top-menu a {
-    display: block;
-    margin: 8px auto;
+    font-size: 15px;
+    padding: 6px 10px;
   }
 }
+
 
 
 
@@ -116,11 +126,10 @@
 </head>
 <body>
   <!-- MENU SUPERIOR -->
- <nav class="top-menu">
+<nav class="top-menu">
   <a href="index.html">🏠 Início</a>
   <a href="indicacoes.html">👥 Indicações</a>
   <a href="pontuacao.html">📊 Pontuação</a>
-  <br>
   <a href="tarefas-externas.html">🧩 Tarefas Externas</a>
   <a href="saque.html">💰 Saque</a>
 </nav>
