@@ -15,47 +15,27 @@
   }
 
   /* Novo menu em duas linhas */
-  .top-menu {
-  background: #2a8f43;
-  padding: 10px 0;
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.menu-row {
-  display: grid;
-  grid-template-columns: repeat(3, auto); /* 3 itens por linha */
-  gap: 10px;
-  justify-content: center;
-  margin: 5px 0;
-}
-
-.menu-row a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 16px;
-  padding: 5px 10px;
-  text-align: center;
-}
-
-.menu-row a:hover {
-  text-decoration: underline;
-}
-
-/* Responsivo para telas pequenas */
-@media (max-width: 400px) {
-  .menu-row {
-    grid-template-columns: repeat(2, auto); /* 2 por linha em telas pequenas */
-  }
-}
+ .top-menu {
+      background: #2a8f43;
+      padding: 10px 0;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      border-radius: 6px;
+    }
+    .top-menu a {
+      color: white;
+      text-decoration: none;
+      margin: 0 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .top-menu a:hover {
+      text-decoration: underline;
+    }
 
 
   .card {
@@ -124,18 +104,14 @@
 </head>
 <body>
   <!-- MENU SUPERIOR -->
-<nav class="top-menu">
-  <div class="menu-row">
+  <nav class="top-menu">
     <a href="index.html">🏠 Início</a>
     <a href="indicacoes.html">👥 Indicações</a>
     <a href="pontuacao.html">📊 Pontuação</a>
-  </div>
-  <div class="menu-row">
-    <a href="tarefas-externas.html">🧩 Tarefas</a>
+    <p></p>
+    <a href="tarefas-externas.html">🧩 Tarefas Externas</a>
     <a href="saque.html">💰 Saque</a>
-    <a href="bonus.html">🎯 Bônus</a>
-  </div>
-</nav>
+  </nav>
 
 
 
