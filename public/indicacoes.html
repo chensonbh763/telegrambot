@@ -17,33 +17,33 @@
   /* Novo menu em duas linhas */
 .top-menu {
   background: #2a8f43;
-  padding: 10px;
+  padding: 6px 0; /* menos padding vertical */
   position: sticky;
   top: 0;
   z-index: 999;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   border-radius: 6px;
   display: flex;
-  flex-wrap: wrap; /* permite quebrar os links para segunda linha */
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
+  gap: 4px 10px; /* menos espaço entre linhas e entre colunas */
 }
 
 .top-menu a {
   color: white;
   text-decoration: none;
   font-weight: bold;
-  font-size: 16px;
-  padding: 8px 12px;
-  white-space: nowrap; /* impede quebra entre emoji e texto */
+  font-size: 15px;
+  padding: 6px 10px; /* menos altura nos botões */
+  white-space: nowrap;
   border-radius: 4px;
-  background-color: transparent;
 }
 
 .top-menu a:hover {
   text-decoration: underline;
 }
+
 
 
 
