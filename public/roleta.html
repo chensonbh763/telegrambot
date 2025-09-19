@@ -13,30 +13,34 @@
       text-align: center;
     }
 
-    .top-menu {
-      background: #2a8f43;
-      padding: 10px 0;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      border-radius: 6px;
-    }
-    .top-menu a {
-      color: white;
-      text-decoration: none;
-      margin: 0 15px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    .top-menu a:hover {
-      text-decoration: underline;
-    }
-    h1 {
-      margin-top: 20px;
-    }
+  .top-menu {
+  background: #2a8f43;
+  padding: 6px 0; /* menos padding vertical */
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+  border-radius: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px; /* menos espaço entre linhas e entre colunas */
+}
+
+.top-menu a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 15px;
+  padding: 6px 10px; /* menos altura nos botões */
+  white-space: nowrap;
+  border-radius: 4px;
+}
+
+.top-menu a:hover {
+  text-decoration: underline;
+}
 
     .descricao {
       margin: 10px 20px;
