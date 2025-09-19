@@ -14,38 +14,35 @@
     padding: 20px;
   }
 
-  /* Novo menu em duas linhas */
+  /* MENU PADRÃO (mesmo do index.html) */
   .top-menu {
-  background: #2a8f43;
-  padding: 6px 0; /* menos padding vertical */
-  position: sticky;
-  top: 0;
-  z-index: 999;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 16px;
-  border-radius: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 4px 10px; /* menos espaço entre linhas e entre colunas */
-}
+    background: #2a8f43;
+    padding: 6px 0;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+    border-radius: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 10px;
+  }
 
-.top-menu a {
-  color: white;
-  text-decoration: none;
-  font-weight: bold;
-  font-size: 15px;
-  padding: 6px 10px; /* menos altura nos botões */
-  white-space: nowrap;
-  border-radius: 4px;
-}
+  .top-menu a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 6px 10px;
+    white-space: nowrap;
+    border-radius: 4px;
+  }
 
-.top-menu a:hover {
-  text-decoration: underline;
-}
-
-
-
+  .top-menu a:hover {
+    text-decoration: underline;
+  }
 
   .card {
     background: white;
@@ -112,19 +109,14 @@
 
 </head>
 <body>
-  <!-- MENU SUPERIOR -->
-<div class="menu-grid">
-  <a href="index.html">🏠 Início</a>
-  <a href="indicacoes.html">👥 Indicações</a>
-  <a href="pontuacao.html">📊 Pontuação</a>
-  <a href="tarefas-externas.html">🧩 Tarefas</a>
-  <a href="saque.html">💰 Saque</a>
-</div>
-
-
-
-
-
+  <!-- MENU SUPERIOR (idêntico ao index.html) -->
+  <nav class="top-menu">
+    <a href="index.html">🏠 Início</a>
+    <a href="indicacoes.html">👥 Indicações</a>
+    <a href="pontuacao.html">📊 Pontuação</a>
+    <a href="tarefas-externas.html">🧩 Tarefas Externas</a>
+    <a href="saque.html">💰 Saque</a>
+  </nav>
 
   <!-- BLOCO PRINCIPAL DE INDICAÇÃO -->
   <div class="card">
@@ -134,32 +126,33 @@
       Cada novo usuário que entrar com seu link acumula pontos e te aproxima de prêmios incríveis no final do mês! 🎁
     </p>
 
-<h3>📎 Seu link de convite:</h3>
-<div class="link-box" id="linkConvite">Gerando...</div>
-<button onclick="copiarConvite()">📋 Copiar Link</button>
-<button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
-<button onclick="window.open('https://www.mfuture.com.br/lucremais/ajuda.html#indicacoes', '_blank')">❓ Dúvidas sobre Indicações</button>
+    <h3>📎 Seu link de convite:</h3>
+    <div class="link-box" id="linkConvite">Gerando...</div>
+    <button onclick="copiarConvite()">📋 Copiar Link</button>
+    <button onclick="compartilharTelegram()">📤 Compartilhar via Telegram</button>
+    <button onclick="window.open('https://www.mfuture.com.br/lucremais/ajuda.html#indicacoes', '_blank')">❓ Dúvidas sobre Indicações</button>
+  </div>
 
-  <!-- BLOCOS DE BANNERS PUBLICITÁRIOS -->
+  <!-- BANNERS -->
   <div class="banner">
     <a href="https://pay.kirvano.com/r/d3132611-4800-4778-ac74-a7d5431627fc" target="_blank">
       <img src="img/cine.png" alt="Banner 1 - Substitua aqui">
     </a>
   </div>
 
-  <!-- Banner Indicador Pro -->
   <div class="banner-box">
     <a href="https://www.mfuture.com.br/indicadorpro/index.html?utm_source=miniapp&utm_medium=banner&utm_campaign=telegram" target="_blank" rel="noopener noreferrer">
       <img src="img/indicadorpro.png" alt="Ganhe sem vender" style="width:100%; max-width:600px; height:auto; border-radius:8px;">
     </a>
   </div>
+
   <div class="banner">
     <a href="https://pay.kirvano.com/r/c6a3fa83-485b-448f-98c9-835cf9238291" target="_blank">
       <img src="img/lashs.png" alt="Banner 3 - Substitua aqui">
     </a>
   </div>
 
-  <!-- ÁREA DE CHAMADA PARA ANUNCIAR -->
+  <!-- ANÚNCIOS -->
   <div class="ads-area">
     <h3>📣 Quer anunciar aqui?</h3>
     <p>Divulgue seu produto, curso ou serviço diretamente dentro do nosso bot!</p>
@@ -168,7 +161,7 @@
     </a>
   </div>
 
-  <!-- SCRIPT PARA GERAR LINK DE INDICAÇÃO -->
+  <!-- SCRIPT GERAR LINK -->
   <script>
     const tg = window.Telegram.WebApp;
     const telegramID = tg.initDataUnsafe?.user?.id;
